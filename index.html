@@ -1,0 +1,3479 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gestor Obrador PRO</title>
+<style>
+/* ========== VARIABLES (light/dark) ========== */
+:root {
+  --main: #2c3e50;
+  --blue: #2980b9;
+  --green: #27ae60;
+  --red: #c0392b;
+  --orange: #d35400;
+  --bg: #f2f4f6;
+  --card-bg: #ffffff;
+  --card-alt: #fdfefe;
+  --text: #333333;
+  --text-muted: #666666;
+  --text-faint: #999999;
+  --border: #dddddd;
+  --border-soft: #eeeeee;
+  --table-head: #f8f9fa;
+  --highlight: #fffde7;
+  --preview-bg: #ffffff;
+  --input-bg: #ffffff;
+  --shadow: rgba(0,0,0,0.05);
+  --shadow-soft: rgba(0,0,0,0.02);
+}
+[data-theme="dark"] {
+  --main: #5b88b8;
+  --blue: #5aa3e0;
+  --green: #5ac970;
+  --red: #e55040;
+  --orange: #f39c12;
+  --bg: #15191e;
+  --card-bg: #222830;
+  --card-alt: #252b33;
+  --text: #e4e6e8;
+  --text-muted: #aab1bb;
+  --text-faint: #7a828b;
+  --border: #3a424c;
+  --border-soft: #2c333c;
+  --table-head: #1c2127;
+  --highlight: #3d3520;
+  --preview-bg: #1c2127;
+  --input-bg: #2a313a;
+  --shadow: rgba(0,0,0,0.4);
+  --shadow-soft: rgba(0,0,0,0.25);
+}
+
+/* ========== BASE ========== */
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  background: var(--bg);
+  padding: 30px;
+  color: var(--text);
+  transition: background .2s, color .2s;
+}
+.container { max-width: 1400px; margin: auto; }
+
+/* ========== HEADER ========== */
+.header {
+  background: var(--card-bg);
+  padding: 25px;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px var(--shadow);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 6px solid var(--main);
+  margin-bottom: 25px;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+h1 {
+  margin: 0;
+  font-size: 2rem;
+  color: var(--main);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.header-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.icon-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.icon-btn:hover { background: var(--border-soft); }
+
+/* ========== GRID ========== */
+.grid {
+  display: grid;
+  grid-template-columns: 320px 1fr 1.3fr;
+  gap: 25px;
+  align-items: start;
+}
+
+/* ========== CARDS ========== */
+.card {
+  background: var(--card-bg);
+  border-radius: 10px;
+  padding: 25px;
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 2px 8px var(--shadow-soft);
+}
+.card h2 {
+  font-size: 1.2rem;
+  margin: 0 0 15px 0;
+  border-bottom: 2px solid var(--border-soft);
+  padding-bottom: 10px;
+  color: var(--blue);
+  text-transform: uppercase;
+  font-weight: 800;
+}
+.card-blue { border-top: 4px solid var(--blue); }
+.card-green { border-top: 4px solid var(--green); background: var(--card-alt); }
+
+/* ========== INPUTS ========== */
+label {
+  font-weight: bold;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  display: block;
+  margin-top: 15px;
+  text-transform: uppercase;
+}
+input, select, textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 1rem;
+  background: var(--input-bg);
+  color: var(--text);
+  font-family: inherit;
+}
+input:focus, select:focus, textarea:focus {
+  border-color: var(--blue);
+  outline: none;
+}
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+
+/* ========== TABLES ========== */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 10px;
+  table-layout: fixed;
+}
+.c-nom { width: auto; min-width: 200px; }
+.c-val { width: 92px; }
+.c-pct { width: 52px; }
+.c-cost { width: 62px; }
+.c-pref { width: 36px; }
+.c-del { width: 34px; }
+.inp-tab { min-width: 0; }
+
+th {
+  text-align: left;
+  background: var(--table-head);
+  padding: 10px 5px;
+  font-size: 0.75rem;
+  border-bottom: 2px solid var(--border);
+  color: var(--text-muted);
+}
+td { padding: 4px 2px; vertical-align: middle; }
+
+.inp-tab {
+  width: 100%;
+  border: 1px solid var(--border-soft);
+  background: var(--input-bg);
+  padding: 10px 5px;
+  font-size: 1.1rem;
+  text-align: right;
+  border-radius: 4px;
+  font-weight: 500;
+  color: var(--text);
+}
+.inp-tab.txt { text-align: left; }
+.inp-tab.small { font-size: 0.9rem; padding: 8px 4px; }
+.inp-tab:focus { border: 1px solid var(--blue); outline: none; }
+
+.row-drag { cursor: grab; user-select: none; }
+.row-drag.dragging { opacity: 0.4; }
+.row-drag.drag-over { border-top: 2px dashed var(--blue); }
+
+.pref-check {
+  width: 18px; height: 18px; cursor: pointer; margin: 0 auto; display: block;
+}
+
+/* ========== BUTTONS ========== */
+.btn {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  color: white;
+  margin-top: 5px;
+  transition: 0.2s;
+  font-size: 1rem;
+}
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-add { background: var(--green); opacity: 0.9; }
+.btn-add:hover { opacity: 1; }
+.btn-del-row {
+  width: 100%;
+  padding: 8px 0;
+  background: transparent;
+  color: var(--red);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  border-radius: 4px;
+  font-weight: bold;
+}
+.btn-del-row:hover { background: var(--red); color: white; border-color: var(--red); }
+.btn-save { background: var(--blue); margin-top: 20px; }
+.btn-dup { background: var(--orange); margin-top: 10px; }
+.btn-trash { background: transparent; color: var(--red); border: 2px solid var(--red); margin-top: 10px; }
+.btn-confirm {
+  background: var(--green);
+  padding: 18px;
+  font-size: 1.2rem;
+  margin-top: 25px;
+  box-shadow: 0 4px 0 #1e8449;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border-radius: 6px;
+}
+.btn-confirm:active { transform: translateY(4px); box-shadow: none; }
+
+/* ========== PREVIEW ========== */
+.preview {
+  margin-top: 25px;
+  background: var(--preview-bg);
+  border: 2px dashed var(--green);
+  padding: 20px;
+  border-radius: 8px;
+}
+.preview-title {
+  text-align: center;
+  font-weight: 800;
+  color: var(--green);
+  margin-bottom: 10px;
+}
+.total-box {
+  background: var(--main);
+  color: white;
+  padding: 15px;
+  text-align: center;
+  font-size: 1.8rem;
+  font-weight: bold;
+  margin-top: 15px;
+  border-radius: 6px;
+}
+.sub-total {
+  display: flex;
+  justify-content: space-between;
+  background: var(--card-alt);
+  border: 1px solid var(--border-soft);
+  padding: 8px 12px;
+  border-radius: 4px;
+  margin-top: 6px;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+.sub-total strong { color: var(--text); }
+
+/* ========== METRICS ========== */
+.metric-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 15px;
+}
+.metric {
+  background: var(--card-alt);
+  border: 1px solid var(--border-soft);
+  border-radius: 6px;
+  padding: 10px;
+  text-align: center;
+}
+.metric-label {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.metric-value {
+  font-size: 1.3rem;
+  font-weight: bold;
+  color: var(--blue);
+  margin-top: 4px;
+}
+
+/* ========== QUEUE ========== */
+.queue-area {
+  margin-top: 40px;
+  background: var(--card-bg);
+  padding: 30px;
+  border-radius: 12px;
+  border-top: 8px solid var(--main);
+  box-shadow: 0 10px 40px var(--shadow);
+}
+.queue-area h2 { margin-top: 0; color: var(--main); }
+.queue-summary {
+  background: var(--card-alt);
+  border: 1px solid var(--border-soft);
+  border-radius: 6px;
+  padding: 12px 16px;
+  margin-bottom: 15px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  font-size: 0.95rem;
+}
+.queue-summary span { color: var(--text-muted); }
+.queue-summary strong { color: var(--text); font-size: 1.05rem; }
+.q-item {
+  background: var(--card-alt);
+  padding: 15px 20px;
+  border-left: 6px solid var(--main);
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: 6px;
+  gap: 10px;
+}
+.q-item-info { flex: 1; min-width: 0; }
+.q-item-info strong { word-break: break-word; }
+.q-item-actions { display: flex; gap: 6px; align-items: center; text-align: right; }
+.q-empty {
+  color: var(--text-faint);
+  padding: 20px;
+  text-align: center;
+}
+
+.actions-bar {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 30px;
+  align-items: center;
+  border-top: 1px solid var(--border-soft);
+  padding-top: 20px;
+  flex-wrap: wrap;
+}
+.btn-excel {
+  background: var(--green);
+  color: white;
+  font-size: 1.1rem;
+  padding: 14px 30px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 800;
+  box-shadow: 0 5px 15px rgba(39, 174, 96, 0.4);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.btn-excel:hover { background: #219150; transform: translateY(-2px); }
+.btn-csv {
+  background: var(--main);
+  color: white;
+  padding: 14px 24px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 700;
+}
+.btn-csv:hover { opacity: 0.9; }
+.btn-clear {
+  background: transparent;
+  color: var(--red);
+  border: 2px solid var(--red);
+  padding: 12px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 700;
+}
+.btn-clear:hover { background: var(--red); color: white; }
+
+/* ========== WATER TEMP CALC ========== */
+.water-calc {
+  margin-top: 20px;
+  background: var(--card-alt);
+  border: 1px solid var(--border-soft);
+  border-radius: 6px;
+  padding: 10px 14px;
+}
+.water-calc summary {
+  cursor: pointer;
+  font-weight: bold;
+  color: var(--blue);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.water-inputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 10px;
+}
+.water-inputs input { padding: 6px; font-size: 0.9rem; }
+.water-inputs label { margin: 0; font-size: 0.7rem; }
+.water-result {
+  background: var(--blue);
+  color: white;
+  padding: 10px;
+  text-align: center;
+  border-radius: 4px;
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+/* ========== SCALER ========== */
+.scaler {
+  margin-top: 15px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  background: var(--card-alt);
+  border: 1px solid var(--border-soft);
+  border-radius: 6px;
+  padding: 10px;
+}
+.scaler label { margin: 0; flex-shrink: 0; font-size: 0.75rem; }
+.scaler input { width: 90px; padding: 6px; }
+.scaler button {
+  background: var(--blue);
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 0.85rem;
+}
+
+/* ========== TOASTS ========== */
+#toastContainer {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 350px;
+}
+.toast {
+  background: var(--card-bg);
+  color: var(--text);
+  border-left: 5px solid var(--blue);
+  padding: 12px 18px;
+  border-radius: 6px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+  opacity: 0;
+  transform: translateX(100%);
+  transition: all .3s;
+  font-size: 0.9rem;
+}
+.toast.show { opacity: 1; transform: translateX(0); }
+.toast-success { border-left-color: var(--green); }
+.toast-error { border-left-color: var(--red); }
+.toast-warn { border-left-color: var(--orange); }
+
+/* ========== MODAL ========== */
+.modal-backdrop {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+  display: none; align-items: center; justify-content: center;
+  z-index: 9998;
+}
+.modal-backdrop.show { display: flex; }
+.modal {
+  background: var(--card-bg);
+  border-radius: 10px;
+  padding: 25px;
+  min-width: 320px;
+  max-width: 500px;
+  width: 90%;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+.modal h3 { margin-top: 0; color: var(--main); }
+.modal-actions { display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end; }
+.modal-actions button { padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+.modal-btn-primary { background: var(--blue); color: white; }
+.modal-btn-cancel { background: transparent; border: 1px solid var(--border) !important; color: var(--text); }
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 1100px) {
+  .grid { grid-template-columns: 1fr 1fr; }
+  .grid > .card:first-child { grid-column: 1 / -1; }
+}
+@media (max-width: 760px) {
+  body { padding: 12px; }
+  .grid { grid-template-columns: 1fr; gap: 15px; }
+  h1 { font-size: 1.3rem; }
+  .card { padding: 18px; }
+  .header { padding: 18px; }
+  .queue-area { padding: 18px; }
+  .btn-excel { padding: 12px 20px; font-size: 1rem; }
+  .actions-bar { justify-content: stretch; }
+  .actions-bar button { flex: 1; }
+  .c-nom { min-width: 150px; }
+  .c-val { width: 80px; }
+  .c-cost { width: 60px; }
+  .c-pct { width: 45px; }
+  .inp-tab { font-size: 0.95rem; padding: 8px 3px; }
+  th { font-size: 0.65rem; padding: 6px 3px; }
+}
+
+/* ========== PRINT ========== */
+@media print {
+  body { background: white; color: black; padding: 0; }
+  .no-print, .header, .actions-bar, .card, #toastContainer, .modal-backdrop { display: none !important; }
+  .container { max-width: none; }
+  .queue-area { border: none; box-shadow: none; padding: 0; margin: 0; }
+  .q-item {
+    border: 1px solid #999;
+    background: white;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  .q-item-actions { display: none !important; }
+}
+
+/* ========== MISC ========== */
+.sr-only {
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0);
+  white-space: nowrap; border: 0;
+}
+.divider { margin-top: 20px; border-top: 1px solid var(--border-soft); padding-top: 20px; }
+.hint { font-size: 0.75rem; color: var(--text-faint); margin-top: 4px; }
+
+/* ========== VOZ ========== */
+.btn-voice {
+  background: var(--main); color: white; margin-top: 10px;
+  padding: 10px 16px; border: none; border-radius: 4px; cursor: pointer;
+  font-weight: bold; width: 100%;
+}
+.btn-voice:hover { opacity: 0.9; }
+.btn-voice:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-ocr {
+  background: #6B46C1; color: white; margin-top: 8px;
+  padding: 10px 16px; border: none; border-radius: 4px; cursor: pointer;
+  font-weight: bold; width: 100%;
+}
+.btn-ocr:hover { opacity: 0.9; }
+.btn-ocr:disabled { opacity: 0.5; cursor: not-allowed; }
+.ocr-spinner {
+  width: 40px; height: 40px; margin: 20px auto;
+  border: 4px solid var(--border-soft); border-top-color: var(--main);
+  border-radius: 50%; animation: ocr-spin 0.8s linear infinite;
+}
+@keyframes ocr-spin { to { transform: rotate(360deg); } }
+.ocr-error {
+  color: #c44; background: rgba(196,68,68,0.08); border-left: 3px solid #c44;
+  padding: 8px 10px; border-radius: 3px; font-size: 0.85rem; margin-top: 8px;
+}
+.ocr-review-preview {
+  font-size: 0.85rem; padding: 10px; background: var(--bg-soft);
+  border-radius: 4px; border: 1px solid var(--border-soft); margin-bottom: 8px;
+}
+.ocr-review-preview h5 { margin: 4px 0; font-size: 0.85rem; color: var(--main); }
+.ocr-review-preview ul { margin: 4px 0 8px 20px; padding: 0; }
+#inpApiKey, #inpApiModel {
+  width: 100%; padding: 10px; border-radius: 4px; font-family: inherit;
+  border: 1px solid var(--border); background: var(--bg-soft); color: var(--text);
+  box-sizing: border-box; font-size: 0.9rem;
+}
+#ocrReviewJson {
+  width: 100%; padding: 10px; border-radius: 4px;
+  border: 1px solid var(--border); background: var(--bg-soft); color: var(--text);
+  box-sizing: border-box; resize: vertical;
+}
+.voice-status {
+  padding: 8px 12px; border-radius: 4px; font-size: 0.85rem; margin-bottom: 10px;
+  background: var(--bg-soft); border: 1px solid var(--border-soft);
+}
+.voice-status.listening {
+  background: #ffe8e8; color: #a33; border-color: #e0a0a0;
+  animation: voice-pulse 1.2s ease-in-out infinite;
+}
+@keyframes voice-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(220, 50, 50, 0.4); }
+  50% { box-shadow: 0 0 0 6px rgba(220, 50, 50, 0); }
+}
+.voice-live {
+  min-height: 50px; padding: 10px; border-radius: 4px;
+  background: var(--bg-soft); border: 1px dashed var(--border);
+  font-size: 0.95rem; margin-bottom: 10px; word-break: break-word;
+}
+.voice-captured {
+  min-height: 30px; margin-bottom: 12px; display: flex; flex-wrap: wrap; gap: 6px;
+}
+.voice-chip {
+  background: #e0f5e0; color: #2a5a2a; padding: 4px 10px; border-radius: 12px;
+  font-size: 0.85rem; border: 1px solid #a0d0a0;
+}
+[data-theme="dark"] .voice-chip { background: #2a4a2a; color: #c0e0c0; border-color: #4a7a4a; }
+[data-theme="dark"] .voice-status.listening { background: #4a2020; color: #f0b0b0; border-color: #6a3030; }
+.voice-step-label { font-weight: bold; margin-bottom: 6px; color: var(--main); }
+.voice-instruction { font-size: 0.85rem; color: var(--text-faint); margin-bottom: 12px; line-height: 1.4; }
+.voice-review-table {
+  width: 100%; font-size: 0.85rem; margin-bottom: 12px; border-collapse: collapse;
+}
+.voice-review-table th, .voice-review-table td {
+  text-align: left; padding: 4px 6px; border-bottom: 1px solid var(--border-soft);
+}
+.voice-review-table th { color: var(--text-faint); font-weight: normal; }
+.modal-btn-ghost {
+  background: transparent; border: 1px solid var(--border) !important; color: var(--text);
+}
+.modal-btn-ghost:disabled {
+  opacity: 0.4; cursor: not-allowed;
+}
+
+/* ========== PROCEDIMIENTO ========== */
+.proc-block { margin-top: 16px; }
+.proc-title {
+  display: block; font-weight: bold; font-size: 0.85rem;
+  color: var(--text); margin-bottom: 10px; text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+.proc-phases { display: flex; flex-direction: column; gap: 6px; }
+.proc-phase {
+  border: 1px solid var(--border-soft); border-radius: 6px;
+  background: var(--bg-soft);
+}
+.proc-phase > summary {
+  cursor: pointer; padding: 10px 12px; user-select: none;
+  font-weight: bold; font-size: 0.9rem; color: var(--text);
+  list-style: none; display: flex; align-items: center; gap: 10px;
+}
+.proc-phase > summary::-webkit-details-marker { display: none; }
+.proc-phase > summary::before {
+  content: '\25B8'; color: var(--text-faint); transition: transform 0.2s;
+  display: inline-block; font-size: 0.9rem;
+}
+.proc-phase[open] > summary::before { transform: rotate(90deg); }
+.proc-phase.has-text > summary::after {
+  content: '\2022'; color: var(--main); margin-left: auto;
+  font-size: 1.4rem; line-height: 0.5;
+}
+.proc-step {
+  background: var(--main); color: white; padding: 2px 8px;
+  border-radius: 3px; font-size: 0.75rem; letter-spacing: 0.02em;
+}
+.proc-ta {
+  width: 100%; padding: 10px; border-radius: 4px;
+  border: 1px solid var(--border); background: var(--bg);
+  color: var(--text); font-family: inherit; font-size: 0.9rem;
+  resize: vertical; box-sizing: border-box;
+  margin: 0 10px 10px 10px; width: calc(100% - 20px);
+}
+.proc-ta:focus { outline: 2px solid var(--blue); outline-offset: -1px; }
+#btnProcVoice { margin-top: 10px; }
+.proc-nav { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+.proc-nav-btn {
+  background: var(--bg-soft); border: 1px solid var(--border-soft);
+  color: var(--text-faint); padding: 4px 10px; border-radius: 3px;
+  font-size: 0.8rem; cursor: pointer; transition: all 0.15s;
+}
+.proc-nav-btn:hover { border-color: var(--main); color: var(--text); }
+.proc-nav-btn.active { background: var(--main); color: white; border-color: var(--main); }
+.proc-nav-btn.has-text::after { content: ' \2022'; }
+#procDictated {
+  width: 100%; padding: 10px; border-radius: 4px;
+  border: 1px solid var(--border); background: var(--bg-soft);
+  color: var(--text); font-family: inherit; font-size: 0.9rem;
+  margin: 6px 0 10px 0; min-height: 140px; resize: vertical;
+  box-sizing: border-box;
+}
+#procDictated:focus { outline: 2px solid var(--blue); outline-offset: -1px; }
+.q-proc { margin-top: 8px; font-size: 0.85rem; }
+.q-proc summary {
+  cursor: pointer; color: var(--text-faint); padding: 4px 0;
+  font-weight: bold; user-select: none;
+}
+.q-proc summary:hover { color: var(--main); }
+.q-proc-body {
+  padding: 8px 10px; margin-top: 4px; background: var(--bg-soft);
+  border-radius: 4px; border-left: 3px solid var(--main);
+  line-height: 1.5;
+}
+.q-proc-phase { margin-bottom: 10px; }
+.q-proc-phase:last-child { margin-bottom: 0; }
+.q-proc-phase-title {
+  margin: 0 0 4px 0; font-size: 0.9rem; color: var(--text);
+  display: flex; align-items: center; gap: 8px;
+}
+.q-proc-phase-body { padding-left: 2px; white-space: pre-wrap; }
+@media print {
+  .q-proc summary { display: none; }
+  .q-proc[open] .q-proc-body,
+  .q-proc .q-proc-body { display: block !important; }
+  .q-proc-body { background: #f8f8f8 !important; color: #000 !important; border-left-color: #333 !important; }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <div class="header no-print">
+    <div>
+      <h1>Recetas Base</h1>
+      <small style="color: var(--text-faint);">Gestor Obrador PRO &middot; v2.0</small>
+    </div>
+    <div class="header-actions">
+      <button type="button" class="icon-btn" id="btnExportDB" title="Exportar base de datos como JSON">
+        <span aria-hidden="true">&#x2B07;</span><span>Exportar BD</span>
+      </button>
+      <button type="button" class="icon-btn" id="btnImportDB" title="Importar base de datos desde JSON">
+        <span aria-hidden="true">&#x2B06;</span><span>Importar BD</span>
+      </button>
+      <input type="file" id="fileImport" accept=".json,application/json" class="sr-only">
+      <button type="button" class="icon-btn" id="btnPrint" title="Imprimir orden del d&iacute;a">
+        <span aria-hidden="true">&#x1F5A8;&#xFE0F;</span><span>Imprimir</span>
+      </button>
+      <button type="button" class="icon-btn" id="btnSettings" title="Ajustes (API key)" aria-label="Ajustes">
+        <span aria-hidden="true">&#x2699;&#xFE0F;</span><span>Ajustes</span>
+      </button>
+      <button type="button" class="icon-btn" id="btnTheme" title="Alternar modo oscuro" aria-label="Alternar tema">
+        <span id="themeIcon" aria-hidden="true">&#x1F319;</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="grid">
+
+    <!-- 1. ARCHIVO -->
+    <div class="card">
+      <h2>1. Archivo</h2>
+
+      <label for="selRecetas">Cargar Receta</label>
+      <select id="selRecetas"><option value="">-- Nueva --</option></select>
+
+      <div class="divider">
+        <label for="nomReceta">Nombre</label>
+        <input type="text" id="nomReceta" placeholder="Ej: Pan Candeal" maxlength="80">
+
+        <button type="button" class="btn btn-save" id="btnSave">
+          <span aria-hidden="true">&#x1F4BE;</span> Guardar Receta
+        </button>
+        <button type="button" class="btn btn-dup" id="btnDup">
+          <span aria-hidden="true">&#x1F4CB;</span> Duplicar
+        </button>
+        <button type="button" class="btn btn-trash" id="btnDel">
+          <span aria-hidden="true">&#x1F5D1;&#xFE0F;</span> Eliminar
+        </button>
+        <button type="button" class="btn btn-del-row" id="btnReset" style="margin-top:10px;">
+          Limpiar todo
+        </button>
+        <button type="button" class="btn-voice" id="btnVoiceOpen" title="Dictar una receta con la voz" hidden>
+          <span aria-hidden="true">&#x1F3A4;</span> Dictar receta
+        </button>
+        <button type="button" class="btn-ocr" id="btnOcrRecipe" title="Extraer receta completa desde una foto (requiere API key en Ajustes)">
+          <span aria-hidden="true">&#x1F4F7;</span> Foto &rarr; Receta
+        </button>
+        <div class="proc-block">
+          <label class="proc-title">Procedimiento de elaboraci&oacute;n</label>
+          <div class="proc-phases" id="procPhases">
+            <details class="proc-phase" data-phase="amasado">
+              <summary><span class="proc-step">Paso 1</span> Amasado</summary>
+              <textarea class="proc-ta" id="procPhase_amasado" rows="3" maxlength="2000" placeholder="Describe el amasado&hellip;"></textarea>
+            </details>
+            <details class="proc-phase" data-phase="proceso">
+              <summary><span class="proc-step">Paso 2</span> Proceso</summary>
+              <textarea class="proc-ta" id="procPhase_proceso" rows="3" maxlength="2000" placeholder="Describe el proceso (boleado, divisi&oacute;n, formado&hellip;)&hellip;"></textarea>
+            </details>
+            <details class="proc-phase" data-phase="fermentacion">
+              <summary><span class="proc-step">Paso 3</span> Fermentaci&oacute;n</summary>
+              <textarea class="proc-ta" id="procPhase_fermentacion" rows="3" maxlength="2000" placeholder="Tiempos, temperaturas, fermentaciones&hellip;"></textarea>
+            </details>
+            <details class="proc-phase" data-phase="coccion">
+              <summary><span class="proc-step">Paso 4</span> Cocci&oacute;n</summary>
+              <textarea class="proc-ta" id="procPhase_coccion" rows="3" maxlength="2000" placeholder="Temperatura, tiempo, vapor&hellip;"></textarea>
+            </details>
+            <details class="proc-phase" data-phase="finalizacion">
+              <summary><span class="proc-step">Paso 5</span> Finalizaci&oacute;n</summary>
+              <textarea class="proc-ta" id="procPhase_finalizacion" rows="3" maxlength="2000" placeholder="Enfriado, glaseado, conservaci&oacute;n&hellip;"></textarea>
+            </details>
+          </div>
+          <button type="button" class="btn-voice" id="btnProcVoice" title="Dictar el procedimiento con la voz paso a paso" hidden>
+            <span aria-hidden="true">&#x1F3A4;</span> Dictar procedimiento
+          </button>
+          <button type="button" class="btn-ocr" id="btnOcrProc" title="Extraer procedimiento desde una foto (requiere API key en Ajustes)">
+            <span aria-hidden="true">&#x1F4F7;</span> Foto &rarr; Procedimiento
+          </button>
+        </div>
+      </div>
+
+      <div class="divider">
+        <label for="fecha">Fecha Producci&oacute;n</label>
+        <input type="date" id="fecha">
+      </div>
+
+      <details class="water-calc">
+        <summary>&#x1F321;&#xFE0F; Calculadora Temperatura Agua</summary>
+        <div class="water-inputs">
+          <div>
+            <label for="wtDDT">T masa deseada (&deg;C)</label>
+            <input type="number" id="wtDDT" value="24" step="0.5">
+          </div>
+          <div>
+            <label for="wtAmb">T ambiente (&deg;C)</label>
+            <input type="number" id="wtAmb" value="22" step="0.5">
+          </div>
+          <div>
+            <label for="wtFlour">T harina (&deg;C)</label>
+            <input type="number" id="wtFlour" value="20" step="0.5">
+          </div>
+          <div>
+            <label for="wtFric">Fricci&oacute;n (&deg;C)</label>
+            <input type="number" id="wtFric" value="5" step="0.5">
+          </div>
+        </div>
+        <div class="water-result" id="wtResult">T agua: -- &deg;C</div>
+        <div class="hint">F&oacute;rmula: 3 &times; T_deseada &minus; T_amb &minus; T_harina &minus; T_fricci&oacute;n</div>
+      </details>
+    </div>
+
+    <!-- 2. FÓRMULA -->
+    <div class="card card-blue">
+      <h2>2. F&oacute;rmula (Base 100%)</h2>
+
+      <table id="tHarinas" aria-label="Harinas">
+        <colgroup>
+          <col class="c-nom"><col class="c-val"><col class="c-pref"><col class="c-pct"><col class="c-del">
+        </colgroup>
+        <thead>
+          <tr>
+            <th>Harinas</th><th>Gramos</th><th title="Preferm.">Pref</th><th>%</th><th></th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <button type="button" class="btn btn-add" data-action="add-harina">+ A&ntilde;adir Harina</button>
+
+      <label style="margin-top:25px;">Otros Ingredientes</label>
+      <table id="tOtros" aria-label="Otros ingredientes">
+        <colgroup>
+          <col class="c-nom"><col class="c-val"><col class="c-pref"><col class="c-pct"><col class="c-del">
+        </colgroup>
+        <thead>
+          <tr>
+            <th>Ingrediente</th><th>Gramos</th><th title="Preferm.">Pref</th><th>%</th><th></th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <button type="button" class="btn btn-add" data-action="add-otro">+ A&ntilde;adir Ingrediente</button>
+
+      <div class="metric-row">
+        <div class="metric">
+          <div class="metric-label">Hidrataci&oacute;n</div>
+          <div class="metric-value" id="mHydration">--%</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Sal / harina</div>
+          <div class="metric-value" id="mSalt">--%</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. PRODUCCIÓN -->
+    <div class="card card-green">
+      <h2>3. Orden Trabajo</h2>
+      <table id="tProd" aria-label="Formatos de producci&oacute;n">
+        <colgroup>
+          <col class="c-nom"><col class="c-val"><col class="c-val"><col class="c-del">
+        </colgroup>
+        <thead>
+          <tr><th>Formato</th><th>Uds.</th><th>Peso (g)</th><th></th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <button type="button" class="btn btn-add" style="background: var(--main);" data-action="add-prod">+ Formato</button>
+
+      <div class="scaler">
+        <label for="scaleTarget">Escalar a masa total (kg):</label>
+        <input type="text" id="scaleTarget" inputmode="decimal" placeholder="10">
+        <button type="button" id="btnScale">Aplicar</button>
+      </div>
+
+      <div class="preview">
+        <div class="preview-title">VISTA PREVIA</div>
+        <table style="margin:0;">
+          <colgroup><col><col style="width:130px;"></colgroup>
+          <tbody id="bodyPrev"></tbody>
+        </table>
+        <div class="sub-total">
+          <span>Prefermento</span><strong id="prefMass">0 g</strong>
+        </div>
+        <div class="total-box" id="txtTotal">0,00 kg</div>
+      </div>
+      <button type="button" class="btn btn-confirm" id="btnAddCola">
+        <span aria-hidden="true">&#x2B07;</span> A&Ntilde;ADIR A ORDEN
+      </button>
+    </div>
+  </div>
+
+  <!-- COLA -->
+  <div class="queue-area" id="zonaCola">
+    <h2><span aria-hidden="true">&#x1F4CB;</span> ORDEN DEL D&Iacute;A</h2>
+
+    <div class="queue-summary" id="queueSummary" style="display:none;">
+      <div><span>Recetas:</span> <strong id="sumCount">0</strong></div>
+      <div><span>Masa total:</span> <strong id="sumMass">0 kg</strong></div>
+      <div><span>Harina total:</span> <strong id="sumFlour">0 kg</strong></div>
+    </div>
+
+    <div id="listaCola"><p class="q-empty">Lista vac&iacute;a...</p></div>
+
+    <div class="actions-bar no-print">
+      <button type="button" class="btn-clear" id="btnClearQueue">Vaciar cola</button>
+      <button type="button" class="btn-csv" id="btnCSV">
+        <span aria-hidden="true">&#x1F4C4;</span> CSV
+      </button>
+      <button type="button" class="btn-excel" id="btnExcel">
+        <span aria-hidden="true">&#x1F4C4;</span> DESCARGAR EXCEL
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para duplicar receta -->
+<div class="modal-backdrop" id="modalDup" role="dialog" aria-modal="true" aria-labelledby="modalDupTitle">
+  <div class="modal">
+    <h3 id="modalDupTitle">Duplicar receta</h3>
+    <label for="dupName">Nuevo nombre</label>
+    <input type="text" id="dupName" maxlength="80">
+    <div class="modal-actions">
+      <button type="button" class="modal-btn-cancel" data-close-modal>Cancelar</button>
+      <button type="button" class="modal-btn-primary" id="btnDupConfirm">Duplicar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para dictado por voz -->
+<div class="modal-backdrop" id="modalVoice" role="dialog" aria-modal="true" aria-labelledby="modalVoiceTitle">
+  <div class="modal" style="max-width: 560px;">
+    <h3 id="modalVoiceTitle">&#x1F3A4; Dictar receta</h3>
+    <div class="voice-step-label" id="voiceStepLabel">Paso 1 de 5: Nombre de la receta</div>
+    <div class="voice-instruction" id="voiceInstruction">
+      Di el nombre de la receta. Ejemplo: &laquo;Pan de trigo r&uacute;stico&raquo;.
+    </div>
+    <div class="voice-status" id="voiceStatus">&#x23F8; Pulsa &laquo;Empezar&raquo; para comenzar</div>
+    <div class="voice-live" id="voiceLive"><em style="color:var(--text-faint);">Esperando&hellip;</em></div>
+    <div class="voice-captured" id="voiceCaptured"></div>
+    <div id="voiceReview" style="display:none;"></div>
+    <div class="modal-actions" style="flex-wrap: wrap; justify-content: flex-start;">
+      <button type="button" class="modal-btn-cancel" id="btnVoiceCancel">Cancelar</button>
+      <button type="button" class="modal-btn-ghost" id="btnVoiceMic">&#x1F3A4; Empezar</button>
+      <button type="button" class="modal-btn-ghost" id="btnVoiceUndo" disabled>&#x21B6; Borrar &uacute;ltimo</button>
+      <button type="button" class="modal-btn-primary" id="btnVoiceNext">Siguiente &rarr;</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para dictar procedimiento -->
+<div class="modal-backdrop" id="modalProc" role="dialog" aria-modal="true" aria-labelledby="modalProcTitle">
+  <div class="modal" style="max-width: 620px;">
+    <h3 id="modalProcTitle">&#x1F3A4; Dictar procedimiento</h3>
+    <div class="voice-step-label" id="procStepLabel">Paso 1 de 5: Amasado</div>
+    <div class="proc-nav" id="procNav"></div>
+    <div class="voice-instruction">
+      Dicta este paso libremente. Cambia de paso con voz (&laquo;siguiente&raquo;, &laquo;paso 3&raquo;) o con los botones.<br>
+      Comandos: &laquo;nueva l&iacute;nea&raquo;, &laquo;borrar&raquo;, &laquo;aplicar&raquo;, &laquo;cancelar&raquo;.
+    </div>
+    <div class="voice-status" id="procStatus">&#x23F8; Pulsa &laquo;Empezar&raquo; para comenzar</div>
+    <div class="voice-live" id="procLive"><em style="color:var(--text-faint);">Esperando&hellip;</em></div>
+    <label for="procDictated" style="font-size:0.85rem; color:var(--text-faint);">Texto del paso (editable)</label>
+    <textarea id="procDictated" rows="6" placeholder="El texto del paso ir&aacute; apareciendo aqu&iacute;&hellip;"></textarea>
+    <div class="modal-actions" style="flex-wrap: wrap; justify-content: flex-start;">
+      <button type="button" class="modal-btn-cancel" id="btnProcCancel">Cancelar</button>
+      <button type="button" class="modal-btn-ghost" id="btnProcPrev">&larr; Anterior</button>
+      <button type="button" class="modal-btn-ghost" id="btnProcMic">&#x1F3A4; Empezar</button>
+      <button type="button" class="modal-btn-ghost" id="btnProcClear">&#x1F5D1;&#xFE0F; Borrar</button>
+      <button type="button" class="modal-btn-ghost" id="btnProcNext">Siguiente &rarr;</button>
+      <button type="button" class="modal-btn-primary" id="btnProcApply">Aplicar &#x2713;</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Ajustes (API key) -->
+<div class="modal-backdrop" id="modalSettings" role="dialog" aria-modal="true" aria-labelledby="modalSettingsTitle">
+  <div class="modal" style="max-width: 560px;">
+    <h3 id="modalSettingsTitle">&#x2699;&#xFE0F; Ajustes</h3>
+    <div class="voice-instruction">
+      Para extraer recetas de im&aacute;genes se usa la API de <b>Claude (Anthropic)</b>.
+      La clave se guarda en tu navegador (localStorage), solo t&uacute; la ves.
+    </div>
+    <label for="inpApiKey">Anthropic API key</label>
+    <input type="password" id="inpApiKey" placeholder="sk-ant-&hellip;" autocomplete="off" spellcheck="false">
+    <label for="inpApiModel" style="margin-top:10px;">Modelo</label>
+    <select id="inpApiModel">
+      <option value="claude-haiku-4-5-20251001">Claude Haiku 4.5 (r&aacute;pido y barato)</option>
+      <option value="claude-sonnet-4-6">Claude Sonnet 4.6 (mejor calidad)</option>
+      <option value="claude-opus-4-6">Claude Opus 4.6 (m&aacute;xima calidad)</option>
+    </select>
+    <div class="hint" style="margin-top: 10px;">
+      Obt&eacute;n tu key en <span style="font-family: monospace;">console.anthropic.com</span>.
+      Coste aproximado por imagen: Haiku &lt; 0,01 &euro;, Sonnet ~0,02 &euro;.
+    </div>
+    <div class="modal-actions" style="flex-wrap: wrap; justify-content: space-between;">
+      <button type="button" class="modal-btn-ghost" id="btnSettingsClear" style="color:#c44;">&#x1F5D1;&#xFE0F; Borrar key</button>
+      <div style="display:flex; gap:10px;">
+        <button type="button" class="modal-btn-cancel" data-close-modal>Cancelar</button>
+        <button type="button" class="modal-btn-primary" id="btnSettingsSave">Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de progreso OCR -->
+<div class="modal-backdrop" id="modalOcrProgress" role="dialog" aria-modal="true" aria-labelledby="modalOcrProgressTitle">
+  <div class="modal" style="max-width: 520px;">
+    <h3 id="modalOcrProgressTitle">&#x1F4F7; Analizando imagen&hellip;</h3>
+    <div class="voice-status" id="ocrProgressStatus">Preparando imagen&hellip;</div>
+    <div class="ocr-spinner" aria-hidden="true"></div>
+    <div class="modal-actions" style="justify-content: flex-end;">
+      <button type="button" class="modal-btn-cancel" id="btnOcrProgressCancel">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de revisi&oacute;n OCR -->
+<div class="modal-backdrop" id="modalOcrReview" role="dialog" aria-modal="true" aria-labelledby="modalOcrReviewTitle">
+  <div class="modal" style="max-width: 720px;">
+    <h3 id="modalOcrReviewTitle">&#x1F4DD; Revisar lo detectado</h3>
+    <div class="voice-instruction" id="ocrReviewInstruction">
+      Revisa y corrige el JSON antes de aplicarlo a la receta.
+    </div>
+    <div class="ocr-review-preview" id="ocrReviewPreview"></div>
+    <label for="ocrReviewJson" style="margin-top:10px;">JSON editable</label>
+    <textarea id="ocrReviewJson" rows="14" style="font-family: monospace; font-size: 0.82rem;"></textarea>
+    <div id="ocrReviewError" class="ocr-error" style="display:none;"></div>
+    <div class="modal-actions">
+      <button type="button" class="modal-btn-cancel" data-close-modal>Cancelar</button>
+      <button type="button" class="modal-btn-ghost" id="btnOcrReviewValidate">Validar JSON</button>
+      <button type="button" class="modal-btn-primary" id="btnOcrReviewApply">Aplicar a la receta</button>
+    </div>
+  </div>
+</div>
+
+<!-- Inputs file ocultos para subir imagen -->
+<input type="file" id="fileOcrFull" accept="image/*" capture="environment" class="sr-only">
+<input type="file" id="fileOcrProc" accept="image/*" capture="environment" class="sr-only">
+
+<div id="toastContainer" aria-live="polite" aria-atomic="true"></div>
+
+<script>
+'use strict';
+
+/* ========== UTILIDADES ========== */
+function escapeHtml(str) {
+  return String(str == null ? '' : str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+function escapeXml(str) {
+  return String(str == null ? '' : str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+}
+/** Parse number admitiendo coma decimal y separador miles europeo */
+function parseNumber(value) {
+  if (value == null || value === '') return 0;
+  var s = String(value).trim();
+  if (s === '') return 0;
+  // Si tiene coma y punto, asumimos europeo: 1.234,56
+  if (s.indexOf(',') !== -1 && s.indexOf('.') !== -1) {
+    s = s.replace(/\./g, '').replace(',', '.');
+  } else if (s.indexOf(',') !== -1) {
+    s = s.replace(',', '.');
+  }
+  var n = parseFloat(s);
+  return isNaN(n) ? 0 : n;
+}
+function debounce(fn, ms) {
+  var t = null;
+  return function() {
+    var args = arguments, self = this;
+    clearTimeout(t);
+    t = setTimeout(function(){ fn.apply(self, args); }, ms);
+  };
+}
+function formatInt(n) {
+  return n.toLocaleString('de-DE', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+}
+function formatKg(n) {
+  return n.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+function formatEUR(n) {
+  return '\u20AC ' + n.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+function tomorrowISO() {
+  var d = new Date();
+  d.setDate(d.getDate() + 1);
+  return d.toISOString().slice(0, 10);
+}
+function uid() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+}
+
+/* ========== TOASTS ========== */
+function toast(msg, type) {
+  type = type || 'info';
+  var c = document.getElementById('toastContainer');
+  var el = document.createElement('div');
+  el.className = 'toast toast-' + type;
+  el.textContent = msg;
+  c.appendChild(el);
+  requestAnimationFrame(function(){ el.classList.add('show'); });
+  setTimeout(function(){
+    el.classList.remove('show');
+    setTimeout(function(){ el.remove(); }, 300);
+  }, 3000);
+}
+
+/* ========== ESTADO ========== */
+var DB_KEY = 'obrador_DB_NATIVO';
+var COLA_KEY = 'obrador_COLA';
+var THEME_KEY = 'obrador_THEME';
+var db = {};
+var cola = [];
+
+function loadStorage() {
+  try {
+    var raw = localStorage.getItem(DB_KEY);
+    db = raw ? (JSON.parse(raw) || {}) : {};
+  } catch (e) { db = {}; toast('Base de datos corrupta, reiniciada', 'warn'); }
+  try {
+    var rawC = localStorage.getItem(COLA_KEY);
+    cola = rawC ? (JSON.parse(rawC) || []) : [];
+    if (!Array.isArray(cola)) cola = [];
+  } catch (e) { cola = []; }
+}
+
+function saveDB() {
+  try {
+    localStorage.setItem(DB_KEY, JSON.stringify(db));
+    return true;
+  } catch (e) {
+    toast('No se pudo guardar (almacenamiento lleno): ' + e.message, 'error');
+    return false;
+  }
+}
+function saveCola() {
+  try {
+    localStorage.setItem(COLA_KEY, JSON.stringify(cola));
+  } catch (e) {
+    toast('No se pudo guardar la cola: ' + e.message, 'error');
+  }
+}
+
+/* ========== TEMA ========== */
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  var icon = document.getElementById('themeIcon');
+  if (icon) icon.textContent = theme === 'dark' ? '\u2600\uFE0F' : '\uD83C\uDF19';
+  try { localStorage.setItem(THEME_KEY, theme); } catch (e) {}
+}
+function toggleTheme() {
+  var cur = document.documentElement.getAttribute('data-theme') || 'light';
+  applyTheme(cur === 'dark' ? 'light' : 'dark');
+}
+
+/* ========== TABLAS: FILAS ========== */
+function rowHtmlIngredient(tableId, v) {
+  v = v || {};
+  var name = v.n != null ? v.n : '';
+  var grams = v.g != null ? v.g : 0;
+  var pref = v.pref ? 'checked' : '';
+  var ph = tableId === 'tHarinas' ? 'Harina' : 'Ingrediente';
+  return ''
+    + '<td><input class="inp-tab txt i-n" value="' + escapeHtml(name) + '" placeholder="' + ph + '" aria-label="Nombre"></td>'
+    + '<td><input type="text" inputmode="decimal" class="inp-tab i-g" value="' + escapeHtml(grams) + '" min="0" aria-label="Gramos"></td>'
+    + '<td><input type="checkbox" class="pref-check i-pref" ' + pref + ' aria-label="Forma parte del prefermento"></td>'
+    + '<td class="c-pct" style="font-size:0.9rem; text-align:right;">0%</td>'
+    + '<td><button type="button" class="btn-del-row" data-action="rm-row" aria-label="Eliminar fila">\u2715</button></td>';
+}
+function rowHtmlProd(v) {
+  v = v || {};
+  var fmt = v.fmt != null ? v.fmt : '';
+  var uds = v.c != null ? v.c : 0;
+  var peso = v.p != null ? v.p : 0;
+  return ''
+    + '<td><input class="inp-tab txt p-n" value="' + escapeHtml(fmt) + '" placeholder="Formato" aria-label="Formato"></td>'
+    + '<td><input type="text" inputmode="decimal" class="inp-tab p-c" value="' + escapeHtml(uds) + '" min="0" aria-label="Unidades"></td>'
+    + '<td><input type="text" inputmode="decimal" class="inp-tab p-p" value="' + escapeHtml(peso) + '" min="0" aria-label="Peso por unidad en gramos"></td>'
+    + '<td><button type="button" class="btn-del-row" data-action="rm-row" aria-label="Eliminar fila">\u2715</button></td>';
+}
+function addIngredientRow(tableId, v) {
+  var tb = document.querySelector('#' + tableId + ' tbody');
+  var tr = document.createElement('tr');
+  tr.className = 'row-drag';
+  tr.draggable = true;
+  tr.innerHTML = rowHtmlIngredient(tableId, v);
+  tb.appendChild(tr);
+  attachDrag(tr);
+  scheduleCalc();
+}
+function addProdRow(v) {
+  var tb = document.querySelector('#tProd tbody');
+  var tr = document.createElement('tr');
+  tr.className = 'row-drag';
+  tr.draggable = true;
+  tr.innerHTML = rowHtmlProd(v);
+  tb.appendChild(tr);
+  attachDrag(tr);
+  scheduleCalc();
+}
+
+/* ========== DRAG & DROP ========== */
+var dragSource = null;
+function attachDrag(tr) {
+  tr.addEventListener('dragstart', function(e){
+    dragSource = tr;
+    tr.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    try { e.dataTransfer.setData('text/plain', ''); } catch(_){}
+  });
+  tr.addEventListener('dragend', function(){
+    tr.classList.remove('dragging');
+    var all = document.querySelectorAll('.row-drag.drag-over');
+    for (var i=0;i<all.length;i++) all[i].classList.remove('drag-over');
+    dragSource = null;
+    scheduleCalc();
+  });
+  tr.addEventListener('dragover', function(e){
+    if (!dragSource || dragSource === tr) return;
+    if (dragSource.parentNode !== tr.parentNode) return;
+    e.preventDefault();
+    var siblings = tr.parentNode.querySelectorAll('.drag-over');
+    for (var i = 0; i < siblings.length; i++) siblings[i].classList.remove('drag-over');
+    tr.classList.add('drag-over');
+  });
+  tr.addEventListener('dragleave', function(){ tr.classList.remove('drag-over'); });
+  tr.addEventListener('drop', function(e){
+    e.preventDefault();
+    if (!dragSource || dragSource === tr) return;
+    if (dragSource.parentNode !== tr.parentNode) return;
+    tr.parentNode.insertBefore(dragSource, tr);
+    tr.classList.remove('drag-over');
+  });
+}
+
+/* ========== LECTURA DE FILAS ========== */
+function readIngredients(tableId) {
+  var rows = [];
+  var trs = document.querySelectorAll('#' + tableId + ' tbody tr');
+  for (var i=0;i<trs.length;i++) {
+    var tr = trs[i];
+    rows.push({
+      n: tr.querySelector('.i-n').value,
+      g: parseNumber(tr.querySelector('.i-g').value),
+      pref: tr.querySelector('.i-pref').checked,
+      _tr: tr,
+      _isFlour: tableId === 'tHarinas'
+    });
+  }
+  return rows;
+}
+function readProds() {
+  var rows = [];
+  var trs = document.querySelectorAll('#tProd tbody tr');
+  for (var i=0;i<trs.length;i++) {
+    var tr = trs[i];
+    rows.push({
+      fmt: tr.querySelector('.p-n').value,
+      c: parseNumber(tr.querySelector('.p-c').value),
+      p: parseNumber(tr.querySelector('.p-p').value)
+    });
+  }
+  return rows;
+}
+
+/* ========== CÁLCULO ========== */
+function calc() {
+  var harinas = readIngredients('tHarinas');
+  var otros = readIngredients('tOtros');
+  var prods = readProds();
+
+  var totalFlour = 0;
+  for (var i=0;i<harinas.length;i++) totalFlour += harinas[i].g;
+
+  var sumPct = 0;
+  var all = harinas.concat(otros);
+  var waterPct = 0, saltPct = 0;
+  for (var j=0;j<all.length;j++) {
+    var it = all[j];
+    var pct = totalFlour > 0 ? (it.g / totalFlour) * 100 : 0;
+    it.pct = pct;
+    sumPct += pct;
+    var cell = it._tr.querySelector('.c-pct');
+    if (cell) cell.textContent = pct.toFixed(1) + '%';
+    var nLower = (it.n || '').toLowerCase();
+    if (!it._isFlour && (nLower.indexOf('agua') !== -1 || nLower.indexOf('leche') !== -1)) waterPct += pct;
+    if (!it._isFlour && /^sal(\s|$|,|\()/i.test(it.n || '')) saltPct += pct;
+  }
+
+  var massTotal = 0;
+  for (var k=0;k<prods.length;k++) massTotal += prods[k].c * prods[k].p;
+
+  document.getElementById('mHydration').textContent = waterPct > 0 ? waterPct.toFixed(1) + '%' : '--%';
+  document.getElementById('mSalt').textContent = saltPct > 0 ? saltPct.toFixed(2) + '%' : '--%';
+
+  var body = document.getElementById('bodyPrev');
+  body.innerHTML = '';
+
+  if (massTotal === 0 || sumPct === 0) {
+    document.getElementById('txtTotal').textContent = '0,00 kg';
+    document.getElementById('prefMass').textContent = '0 g';
+    return null;
+  }
+
+  var factor = massTotal / (sumPct / 100);
+  var prefMass = 0;
+  var ingsFinal = [];
+  for (var m=0;m<all.length;m++) {
+    var it2 = all[m];
+    var finalG = factor * (it2.pct / 100);
+    if (it2.pref) prefMass += finalG;
+    var style = it2._isFlour ? 'background:var(--highlight); font-weight:bold;' : '';
+    var prefTag = it2.pref ? ' <small style="color:var(--orange)">\u26AB pref</small>' : '';
+    var flourTag = it2._isFlour ? ' (H)' : '';
+    var tr = document.createElement('tr');
+    tr.setAttribute('style', style);
+    var tdName = document.createElement('td');
+    tdName.textContent = (it2.n || '') + flourTag;
+    if (it2.pref) {
+      var sup = document.createElement('small');
+      sup.style.color = 'var(--orange)';
+      sup.textContent = ' \u26AB pref';
+      tdName.appendChild(sup);
+    }
+    var tdVal = document.createElement('td');
+    tdVal.style.cssText = 'text-align:right; font-weight:bold;';
+    tdVal.textContent = formatInt(Math.round(finalG)) + ' g';
+    tr.appendChild(tdName);
+    tr.appendChild(tdVal);
+    body.appendChild(tr);
+    ingsFinal.push({
+      n: it2.n, pct: it2.pct, esH: it2._isFlour,
+      pref: it2.pref, fin: finalG
+    });
+  }
+
+  document.getElementById('txtTotal').textContent = formatKg(massTotal / 1000) + ' kg';
+  document.getElementById('prefMass').textContent = formatInt(Math.round(prefMass)) + ' g';
+
+  var scaledFlourG = 0;
+  for (var nF=0;nF<ingsFinal.length;nF++) {
+    if (ingsFinal[nF].esH) scaledFlourG += ingsFinal[nF].fin;
+  }
+
+  return {
+    ings: ingsFinal,
+    prods: prods,
+    masa: massTotal,
+    harinaTotalG: scaledFlourG,
+    prefMasa: prefMass,
+    hidratacion: waterPct
+  };
+}
+var scheduleCalc = debounce(calc, 80);
+
+/* ========== ESCALADO INVERSO ========== */
+function applyScale() {
+  var target = parseNumber(document.getElementById('scaleTarget').value);
+  if (target <= 0) { toast('Introduce una masa objetivo v\u00e1lida', 'warn'); return; }
+  var prods = readProds();
+  var current = 0;
+  for (var i=0;i<prods.length;i++) current += prods[i].c * prods[i].p;
+  if (current === 0) { toast('Indica primero al menos un formato con unidades y peso', 'warn'); return; }
+  var ratio = (target * 1000) / current;
+  var trs = document.querySelectorAll('#tProd tbody tr');
+  var newTotal = 0;
+  for (var j=0;j<trs.length;j++) {
+    var cInput = trs[j].querySelector('.p-c');
+    var pInput = trs[j].querySelector('.p-p');
+    var c = parseNumber(cInput.value);
+    var p = parseNumber(pInput.value);
+    var newC = Math.max(0, Math.round(c * ratio));
+    cInput.value = newC;
+    newTotal += newC * p;
+  }
+  calc();
+  var realKg = newTotal / 1000;
+  var driftKg = Math.abs(realKg - target);
+  if (driftKg >= 0.05) {
+    toast('Ajustado a ' + formatKg(realKg) + ' kg (objetivo ' + formatKg(target) + ' kg, redondeo a unidades enteras)', 'warn');
+  } else {
+    toast('Escalado a ' + formatKg(realKg) + ' kg', 'success');
+  }
+}
+
+/* ========== RESET ========== */
+function resetForm() {
+  document.querySelector('#tHarinas tbody').innerHTML = '';
+  document.querySelector('#tOtros tbody').innerHTML = '';
+  document.querySelector('#tProd tbody').innerHTML = '';
+  document.getElementById('nomReceta').value = '';
+  document.getElementById('selRecetas').value = '';
+  document.getElementById('scaleTarget').value = '';
+  clearProcForm();
+  addIngredientRow('tHarinas');
+  addIngredientRow('tOtros');
+  addProdRow();
+  calc();
+}
+
+/* ========== DB: RECETAS ========== */
+function collectRecipe() {
+  return {
+    h: readIngredients('tHarinas').map(function(r){ return { n: r.n, g: r.g, pref: r.pref }; }),
+    o: readIngredients('tOtros').map(function(r){ return { n: r.n, g: r.g, pref: r.pref }; }),
+    prods: readProds(),
+    proc: readProcFromForm(),
+    modifiedAt: new Date().toISOString()
+  };
+}
+function saveRecipe() {
+  var name = document.getElementById('nomReceta').value.trim();
+  if (!name) { toast('Pon un nombre a la receta', 'warn'); return; }
+  if (db[name] && !confirm('Ya existe "' + name + '". \u00bfSobrescribir?')) return;
+  db[name] = collectRecipe();
+  if (!saveDB()) return;
+  renderRecipeSelect();
+  document.getElementById('selRecetas').value = name;
+  toast('Guardada: ' + name, 'success');
+}
+function loadRecipeByName(name) {
+  if (!name) return;
+  var r = db[name];
+  if (!r) { toast('Receta no encontrada', 'error'); return; }
+  document.getElementById('nomReceta').value = name;
+  writeProcToForm(r.proc);
+  document.querySelector('#tHarinas tbody').innerHTML = '';
+  document.querySelector('#tOtros tbody').innerHTML = '';
+  document.querySelector('#tProd tbody').innerHTML = '';
+  (r.h || []).forEach(function(x){ addIngredientRow('tHarinas', x); });
+  (r.o || []).forEach(function(x){ addIngredientRow('tOtros', x); });
+  if (r.prods && r.prods.length) {
+    r.prods.forEach(function(p){ addProdRow(p); });
+  } else {
+    addProdRow();
+  }
+  calc();
+}
+function deleteRecipe() {
+  var name = document.getElementById('nomReceta').value.trim();
+  if (!db[name]) { toast('No hay ninguna receta con ese nombre', 'warn'); return; }
+  if (!confirm('\u00bfBorrar "' + name + '"? Esta acci\u00f3n no se puede deshacer.')) return;
+  delete db[name];
+  if (!saveDB()) return;
+  renderRecipeSelect();
+  document.getElementById('nomReceta').value = '';
+  toast('Eliminada: ' + name, 'success');
+}
+function duplicateRecipe() {
+  var name = document.getElementById('nomReceta').value.trim();
+  if (!name) { toast('Primero carga o nombra una receta', 'warn'); return; }
+  var modal = document.getElementById('modalDup');
+  document.getElementById('dupName').value = name + ' (copia)';
+  modal.classList.add('show');
+  setTimeout(function(){ document.getElementById('dupName').focus(); }, 50);
+}
+function confirmDuplicate() {
+  var newName = document.getElementById('dupName').value.trim();
+  if (!newName) { toast('Introduce un nombre', 'warn'); return; }
+  if (db[newName] && !confirm('Ya existe "' + newName + '". \u00bfSobrescribir?')) return;
+  db[newName] = collectRecipe();
+  if (!saveDB()) return;
+  renderRecipeSelect();
+  document.getElementById('selRecetas').value = newName;
+  document.getElementById('nomReceta').value = newName;
+  document.getElementById('modalDup').classList.remove('show');
+  toast('Duplicada: ' + newName, 'success');
+}
+function renderRecipeSelect() {
+  var s = document.getElementById('selRecetas');
+  s.innerHTML = '<option value="">-- Nueva --</option>';
+  var names = Object.keys(db).sort(function(a,b){ return a.localeCompare(b, 'es'); });
+  names.forEach(function(n){
+    var o = document.createElement('option');
+    o.value = n;
+    var mod = db[n] && db[n].modifiedAt;
+    var suffix = mod ? '  \u00b7 ' + mod.slice(0, 10) : '';
+    o.textContent = n + suffix;
+    s.appendChild(o);
+  });
+}
+
+/* ========== COLA ========== */
+function addToCola() {
+  var d = calc();
+  if (!d) { toast('La masa total es 0', 'warn'); return; }
+  var name = document.getElementById('nomReceta').value.trim() || 'Sin nombre';
+  var date = document.getElementById('fecha').value;
+  if (!date) { toast('Selecciona una fecha de producci\u00f3n', 'warn'); return; }
+  // Guardamos también los ingredientes crudos para permitir edición
+  cola.push({
+    id: uid(),
+    nom: name,
+    fecha: date,
+    raw: {
+      h: readIngredients('tHarinas').map(function(r){ return { n: r.n, g: r.g, pref: r.pref }; }),
+      o: readIngredients('tOtros').map(function(r){ return { n: r.n, g: r.g, pref: r.pref }; }),
+      prods: readProds(),
+      proc: readProcFromForm()
+    },
+    dat: d
+  });
+  saveCola();
+  renderCola();
+  toast('A\u00f1adida a la orden: ' + name, 'success');
+}
+function renderCola() {
+  var list = document.getElementById('listaCola');
+  var summary = document.getElementById('queueSummary');
+  if (cola.length === 0) {
+    list.innerHTML = '<p class="q-empty">Lista vac\u00eda.</p>';
+    summary.style.display = 'none';
+    return;
+  }
+  summary.style.display = '';
+  var totalMass = 0, totalFlour = 0;
+  var html = '';
+  cola.forEach(function(x, idx){
+    totalMass += x.dat.masa;
+    totalFlour += x.dat.harinaTotalG || 0;
+    var det = x.dat.prods.map(function(p){ return escapeHtml(p.c) + 'x ' + escapeHtml(p.fmt || ''); }).join(', ');
+    var procHtml = '';
+    if (x.raw && x.raw.proc) {
+      var procObj = normalizeProc(x.raw.proc);
+      var hasAny = false;
+      var phasesHtml = '';
+      for (var pi = 0; pi < PROC_PHASES.length; pi++) {
+        var pk = PROC_PHASES[pi].key;
+        var pt = (procObj[pk] || '').trim();
+        if (!pt) continue;
+        hasAny = true;
+        phasesHtml += '<div class="q-proc-phase">'
+          + '<h4 class="q-proc-phase-title"><span class="proc-step">Paso ' + (pi + 1) + '</span> ' + escapeHtml(PROC_PHASES[pi].label) + '</h4>'
+          + '<div class="q-proc-phase-body">' + escapeHtml(pt).replace(/\n/g, '<br>') + '</div>'
+          + '</div>';
+      }
+      if (hasAny) {
+        procHtml = '<details class="q-proc"><summary>Procedimiento</summary>'
+          + '<div class="q-proc-body">' + phasesHtml + '</div>'
+          + '</details>';
+      }
+    }
+    html += '<div class="q-item" data-idx="' + idx + '">'
+      + '<div class="q-item-info">'
+        + '<strong>' + escapeHtml((x.nom || '').toUpperCase()) + '</strong> '
+        + '<small style="color:var(--text-muted); margin-left:10px;">' + escapeHtml(x.fecha) + '</small><br>'
+        + '<small style="color:var(--text-muted)">' + det + '</small>'
+        + procHtml
+      + '</div>'
+      + '<div class="q-item-actions">'
+        + '<strong>' + formatKg(x.dat.masa / 1000) + ' kg</strong>'
+        + '<button type="button" class="btn-del-row" style="width:auto; padding:6px 10px;" data-action="edit-cola" data-idx="' + idx + '" aria-label="Editar">\u270F\uFE0F</button>'
+        + '<button type="button" class="btn-del-row" style="width:auto; padding:6px 10px;" data-action="rm-cola" data-idx="' + idx + '" aria-label="Eliminar">\u2715</button>'
+      + '</div>'
+    + '</div>';
+  });
+  list.innerHTML = html;
+  document.getElementById('sumCount').textContent = cola.length;
+  document.getElementById('sumMass').textContent = formatKg(totalMass / 1000) + ' kg';
+  document.getElementById('sumFlour').textContent = formatKg(totalFlour / 1000) + ' kg';
+}
+function removeFromCola(idx) {
+  if (idx < 0 || idx >= cola.length) return;
+  if (!confirm('\u00bfQuitar "' + cola[idx].nom + '" de la orden?')) return;
+  cola.splice(idx, 1);
+  saveCola();
+  renderCola();
+}
+function editCola(idx) {
+  if (idx < 0 || idx >= cola.length) return;
+  var item = cola[idx];
+  if (!item.raw) { toast('Entrada antigua sin datos editables', 'warn'); return; }
+  document.getElementById('nomReceta').value = item.nom;
+  document.getElementById('fecha').value = item.fecha;
+  writeProcToForm(item.raw.proc);
+  document.querySelector('#tHarinas tbody').innerHTML = '';
+  document.querySelector('#tOtros tbody').innerHTML = '';
+  document.querySelector('#tProd tbody').innerHTML = '';
+  (item.raw.h || []).forEach(function(x){ addIngredientRow('tHarinas', x); });
+  (item.raw.o || []).forEach(function(x){ addIngredientRow('tOtros', x); });
+  (item.raw.prods || []).forEach(function(p){ addProdRow({ fmt: p.fmt, c: p.c, p: p.p }); });
+  if ((item.raw.prods || []).length === 0) addProdRow();
+  cola.splice(idx, 1);
+  saveCola();
+  renderCola();
+  calc();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  toast('Editando "' + item.nom + '" \u00b7 pulsa A\u00f1adir a orden para confirmar', 'info');
+}
+function clearQueue() {
+  if (cola.length === 0) return;
+  if (!confirm('\u00bfVaciar toda la orden del d\u00eda (' + cola.length + ' recetas)?')) return;
+  cola = [];
+  saveCola();
+  renderCola();
+  toast('Cola vaciada', 'success');
+}
+
+/* ========== IMPORT / EXPORT DB ========== */
+function exportDB() {
+  var blob = new Blob([JSON.stringify({ db: db, exportedAt: new Date().toISOString() }, null, 2)], {
+    type: 'application/json'
+  });
+  downloadBlob(blob, 'recetas_obrador_' + new Date().toISOString().slice(0, 10) + '.json');
+  toast('Base de datos exportada', 'success');
+}
+function importDBFromFile(file) {
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      var parsed = JSON.parse(e.target.result);
+      var newDB = parsed && parsed.db ? parsed.db : parsed;
+      if (!newDB || typeof newDB !== 'object') throw new Error('Formato incorrecto');
+      var count = Object.keys(newDB).length;
+      if (!confirm('Se importar\u00e1n ' + count + ' recetas. \u00bfFusionar con las actuales? (Cancela para reemplazar)')) {
+        db = newDB;
+      } else {
+        Object.keys(newDB).forEach(function(k){ db[k] = newDB[k]; });
+      }
+      if (!saveDB()) return;
+      renderRecipeSelect();
+      toast('Importadas ' + count + ' recetas', 'success');
+    } catch (err) {
+      toast('Archivo inv\u00e1lido: ' + err.message, 'error');
+    }
+  };
+  reader.readAsText(file);
+}
+function downloadBlob(blob, filename) {
+  var link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  setTimeout(function(){
+    URL.revokeObjectURL(link.href);
+    link.remove();
+  }, 1000);
+}
+
+/* ========== EXCEL XML 2003 ========== */
+function sanitizeSheetName(name) {
+  // Excel: máx 31 chars, no [ ] : \ / ? *
+  return String(name || 'Receta').replace(/[\[\]\:\\\/\?\*]/g, '').substring(0, 30) || 'Receta';
+}
+function uniqueSheetName(name, used) {
+  var base = sanitizeSheetName(name);
+  var n = base;
+  var i = 2;
+  while (used[n]) {
+    var suffix = ' (' + (i++) + ')';
+    n = base.substring(0, 30 - suffix.length) + suffix;
+  }
+  used[n] = true;
+  return n;
+}
+function generateExcel() {
+  if (cola.length === 0) { toast('Lista vac\u00eda', 'warn'); return; }
+  var xml = '<?xml version="1.0"?>\n';
+  xml += '<?mso-application progid="Excel.Sheet"?>\n';
+  xml += '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" '
+    + 'xmlns:o="urn:schemas-microsoft-com:office:office" '
+    + 'xmlns:x="urn:schemas-microsoft-com:office:excel" '
+    + 'xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">\n';
+  xml += '<Styles>\n'
+    + ' <Style ss:ID="Default" ss:Name="Normal"><Font ss:FontName="Arial" ss:Size="11"/><Alignment ss:Vertical="Center"/></Style>\n'
+    + ' <Style ss:ID="sTitle"><Font ss:FontName="Arial" ss:Size="22" ss:Bold="1" ss:Color="#2C3E50"/><Alignment ss:Horizontal="Center"/></Style>\n'
+    + ' <Style ss:ID="sHeader"><Font ss:FontName="Arial" ss:Size="12" ss:Bold="1" ss:Color="#FFFFFF"/><Interior ss:Color="#2C3E50" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center"/></Style>\n'
+    + ' <Style ss:ID="sLabel"><Font ss:FontName="Arial" ss:Size="11" ss:Bold="1" ss:Color="#7F8C8D"/></Style>\n'
+    + ' <Style ss:ID="sVal"><Font ss:FontName="Arial" ss:Size="14" ss:Bold="1"/></Style>\n'
+    + ' <Style ss:ID="sNum"><NumberFormat ss:Format="#,##0"/><Alignment ss:Horizontal="Right"/></Style>\n'
+    + ' <Style ss:ID="sNumBold"><Font ss:Bold="1"/><NumberFormat ss:Format="#,##0"/><Alignment ss:Horizontal="Right"/></Style>\n'
+    + ' <Style ss:ID="sHarina"><Interior ss:Color="#FFFDE7" ss:Pattern="Solid"/><Font ss:Bold="1"/><Alignment ss:Horizontal="Right"/><NumberFormat ss:Format="#,##0"/></Style>\n'
+    + ' <Style ss:ID="sHarinaL"><Interior ss:Color="#FFFDE7" ss:Pattern="Solid"/><Font ss:Bold="1"/></Style>\n'
+    + ' <Style ss:ID="sPref"><Interior ss:Color="#FFEACC" ss:Pattern="Solid"/><Font ss:Bold="1"/><Alignment ss:Horizontal="Right"/><NumberFormat ss:Format="#,##0"/></Style>\n'
+    + ' <Style ss:ID="sPrefL"><Interior ss:Color="#FFEACC" ss:Pattern="Solid"/><Font ss:Bold="1"/></Style>\n'
+    + ' <Style ss:ID="sTotal"><Font ss:Size="14" ss:Bold="1"/><Alignment ss:Horizontal="Right"/><Interior ss:Color="#F4F6F8" ss:Pattern="Solid"/></Style>\n'
+    + '</Styles>\n';
+
+  // -------- Pestaña resumen --------
+  xml += '<Worksheet ss:Name="Resumen">\n';
+  xml += ' <Table ss:DefaultColumnWidth="60">\n';
+  xml += '  <Column ss:Width="260"/><Column ss:Width="100"/><Column ss:Width="120"/>\n';
+  xml += '  <Row ss:Height="35"><Cell ss:MergeAcross="2" ss:StyleID="sTitle"><Data ss:Type="String">RESUMEN ORDEN DEL D\u00CDA</Data></Cell></Row>\n';
+  xml += '  <Row><Cell/></Row>\n';
+  xml += '  <Row ss:Height="20">'
+    + '<Cell ss:StyleID="sHeader"><Data ss:Type="String">Receta</Data></Cell>'
+    + '<Cell ss:StyleID="sHeader"><Data ss:Type="String">Fecha</Data></Cell>'
+    + '<Cell ss:StyleID="sHeader"><Data ss:Type="String">Masa (kg)</Data></Cell>'
+    + '</Row>\n';
+  var totMass = 0;
+  // Agregación ingredientes
+  var agg = {};
+  cola.forEach(function(r){
+    var masaKg = (r.dat.masa || 0) / 1000;
+    totMass += masaKg;
+    xml += '  <Row>'
+      + '<Cell><Data ss:Type="String">' + escapeXml(r.nom) + '</Data></Cell>'
+      + '<Cell><Data ss:Type="String">' + escapeXml(r.fecha) + '</Data></Cell>'
+      + '<Cell ss:StyleID="sNum"><Data ss:Type="Number">' + masaKg.toFixed(2) + '</Data></Cell>'
+      + '</Row>\n';
+    (r.dat.ings || []).forEach(function(i){
+      var key = (i.n || '').trim().toLowerCase();
+      if (!key) return;
+      if (!agg[key]) agg[key] = { n: i.n, g: 0, esH: !!i.esH };
+      agg[key].g += i.fin || 0;
+    });
+  });
+  xml += '  <Row>'
+    + '<Cell ss:MergeAcross="1" ss:StyleID="sTotal"><Data ss:Type="String">TOTAL</Data></Cell>'
+    + '<Cell ss:StyleID="sTotal"><Data ss:Type="Number">' + totMass.toFixed(2) + '</Data></Cell>'
+    + '</Row>\n';
+  xml += '  <Row><Cell/></Row>\n';
+  xml += '  <Row><Cell ss:StyleID="sLabel"><Data ss:Type="String">INGREDIENTES TOTALES DEL D\u00CDA</Data></Cell></Row>\n';
+  xml += '  <Row ss:Height="20">'
+    + '<Cell ss:StyleID="sHeader"><Data ss:Type="String">Ingrediente</Data></Cell>'
+    + '<Cell ss:StyleID="sHeader"><Data ss:Type="String">Cantidad (g)</Data></Cell>'
+    + '<Cell ss:StyleID="sHeader"><Data ss:Type="String">Cantidad (kg)</Data></Cell>'
+    + '</Row>\n';
+  // Orden: harinas primero, luego resto alfabético
+  var aggArr = Object.keys(agg).map(function(k){ return agg[k]; });
+  aggArr.sort(function(a, b){
+    if (a.esH !== b.esH) return a.esH ? -1 : 1;
+    return a.n.localeCompare(b.n, 'es');
+  });
+  aggArr.forEach(function(i){
+    var sty = i.esH ? 'sHarina' : 'sNum';
+    var styL = i.esH ? 'sHarinaL' : '';
+    var labelCell = styL
+      ? '<Cell ss:StyleID="' + styL + '"><Data ss:Type="String">' + escapeXml(i.n) + (i.esH ? ' (H)' : '') + '</Data></Cell>'
+      : '<Cell><Data ss:Type="String">' + escapeXml(i.n) + '</Data></Cell>';
+    xml += '  <Row>'
+      + labelCell
+      + '<Cell ss:StyleID="' + sty + '"><Data ss:Type="Number">' + Math.round(i.g) + '</Data></Cell>'
+      + '<Cell ss:StyleID="sNum"><Data ss:Type="Number">' + (i.g / 1000).toFixed(2) + '</Data></Cell>'
+      + '</Row>\n';
+  });
+  xml += ' </Table>\n</Worksheet>\n';
+
+  // -------- Pestañas por receta --------
+  var used = { 'Resumen': true };
+  cola.forEach(function(r){
+    var sheetName = uniqueSheetName(r.nom, used);
+    xml += '<Worksheet ss:Name="' + escapeXml(sheetName) + '">\n';
+    xml += ' <Table ss:DefaultColumnWidth="60">\n';
+    xml += '  <Column ss:Width="260"/><Column ss:Width="100"/><Column ss:Width="120"/>\n';
+    xml += '  <Row ss:Height="35"><Cell ss:MergeAcross="2" ss:StyleID="sTitle"><Data ss:Type="String">ORDEN DE PRODUCCI\u00D3N</Data></Cell></Row>\n';
+    xml += '  <Row><Cell/></Row>\n';
+    xml += '  <Row><Cell ss:StyleID="sLabel"><Data ss:Type="String">RECETA:</Data></Cell>'
+      + '<Cell ss:StyleID="sVal"><Data ss:Type="String">' + escapeXml((r.nom || '').toUpperCase()) + '</Data></Cell></Row>\n';
+    xml += '  <Row><Cell ss:StyleID="sLabel"><Data ss:Type="String">FECHA:</Data></Cell>'
+      + '<Cell><Data ss:Type="String">' + escapeXml(r.fecha) + '</Data></Cell></Row>\n';
+    if (r.dat.hidratacion) {
+      xml += '  <Row><Cell ss:StyleID="sLabel"><Data ss:Type="String">HIDRATACI\u00D3N:</Data></Cell>'
+        + '<Cell><Data ss:Type="String">' + r.dat.hidratacion.toFixed(1) + '%</Data></Cell></Row>\n';
+    }
+    xml += '  <Row><Cell/></Row>\n';
+    xml += '  <Row><Cell ss:StyleID="sLabel"><Data ss:Type="String">1. PLANIFICACI\u00D3N</Data></Cell></Row>\n';
+    xml += '  <Row ss:Height="20">'
+      + '<Cell ss:StyleID="sHeader"><Data ss:Type="String">Formato</Data></Cell>'
+      + '<Cell ss:StyleID="sHeader"><Data ss:Type="String">Unidades</Data></Cell>'
+      + '<Cell ss:StyleID="sHeader"><Data ss:Type="String">Peso U. (g)</Data></Cell>'
+      + '</Row>\n';
+    (r.dat.prods || []).forEach(function(p){
+      xml += '  <Row>'
+        + '<Cell><Data ss:Type="String">' + escapeXml(p.fmt || '') + '</Data></Cell>'
+        + '<Cell ss:StyleID="sNum"><Data ss:Type="Number">' + (p.c || 0) + '</Data></Cell>'
+        + '<Cell ss:StyleID="sNum"><Data ss:Type="Number">' + (p.p || 0) + '</Data></Cell>'
+        + '</Row>\n';
+    });
+    xml += '  <Row><Cell/></Row>\n';
+    xml += '  <Row><Cell/>'
+      + '<Cell ss:StyleID="sTotal"><Data ss:Type="String">TOTAL:</Data></Cell>'
+      + '<Cell ss:StyleID="sTotal"><Data ss:Type="String">' + formatKg((r.dat.masa || 0) / 1000) + ' kg</Data></Cell></Row>\n';
+    xml += '  <Row><Cell/></Row>\n';
+    xml += '  <Row><Cell ss:StyleID="sLabel"><Data ss:Type="String">2. HOJA DE PESADO</Data></Cell></Row>\n';
+    xml += '  <Row ss:Height="20">'
+      + '<Cell ss:StyleID="sHeader"><Data ss:Type="String">Ingrediente</Data></Cell>'
+      + '<Cell ss:StyleID="sHeader"><Data ss:Type="String">% Panadero</Data></Cell>'
+      + '<Cell ss:StyleID="sHeader"><Data ss:Type="String">Cantidad (g)</Data></Cell>'
+      + '</Row>\n';
+    (r.dat.ings || []).filter(function(i){ return i.esH; }).forEach(function(i){
+      var lab = escapeXml(i.n) + ' (H)' + (i.pref ? ' \u2022 pref' : '');
+      var labStyle = i.pref ? 'sPrefL' : 'sHarinaL';
+      var valStyle = i.pref ? 'sPref' : 'sHarina';
+      xml += '  <Row>'
+        + '<Cell ss:StyleID="' + labStyle + '"><Data ss:Type="String">' + lab + '</Data></Cell>'
+        + '<Cell ss:StyleID="sNum"><Data ss:Type="String">' + i.pct.toFixed(1) + '%</Data></Cell>'
+        + '<Cell ss:StyleID="' + valStyle + '"><Data ss:Type="Number">' + Math.round(i.fin) + '</Data></Cell>'
+        + '</Row>\n';
+    });
+    (r.dat.ings || []).filter(function(i){ return !i.esH; }).forEach(function(i){
+      var lab = escapeXml(i.n) + (i.pref ? ' \u2022 pref' : '');
+      if (i.pref) {
+        xml += '  <Row>'
+          + '<Cell ss:StyleID="sPrefL"><Data ss:Type="String">' + lab + '</Data></Cell>'
+          + '<Cell ss:StyleID="sNum"><Data ss:Type="String">' + i.pct.toFixed(1) + '%</Data></Cell>'
+          + '<Cell ss:StyleID="sPref"><Data ss:Type="Number">' + Math.round(i.fin) + '</Data></Cell>'
+          + '</Row>\n';
+      } else {
+        xml += '  <Row>'
+          + '<Cell><Data ss:Type="String">' + lab + '</Data></Cell>'
+          + '<Cell ss:StyleID="sNum"><Data ss:Type="String">' + i.pct.toFixed(1) + '%</Data></Cell>'
+          + '<Cell ss:StyleID="sNum"><Data ss:Type="Number">' + Math.round(i.fin) + '</Data></Cell>'
+          + '</Row>\n';
+      }
+    });
+    if (r.dat.prefMasa > 0) {
+      xml += '  <Row><Cell/></Row>\n';
+      xml += '  <Row>'
+        + '<Cell ss:StyleID="sLabel"><Data ss:Type="String">Masa prefermento:</Data></Cell>'
+        + '<Cell/>'
+        + '<Cell ss:StyleID="sTotal"><Data ss:Type="Number">' + Math.round(r.dat.prefMasa) + '</Data></Cell>'
+        + '</Row>\n';
+    }
+    xml += '  <Row><Cell/></Row>\n';
+    xml += '  <Row><Cell ss:StyleID="sLabel"><Data ss:Type="String">NOTAS:</Data></Cell></Row>\n';
+    xml += '  <Row><Cell><Data ss:Type="String">_________________________________________________</Data></Cell></Row>\n';
+    xml += ' </Table>\n</Worksheet>\n';
+  });
+
+  xml += '</Workbook>';
+  var blob = new Blob([xml], { type: 'application/vnd.ms-excel' });
+  var fecha = document.getElementById('fecha').value || new Date().toISOString().slice(0, 10);
+  downloadBlob(blob, 'Ordenes_' + fecha + '.xls');
+  toast('Excel descargado', 'success');
+}
+
+/* ========== CSV ========== */
+function csvEscape(v) {
+  var s = String(v == null ? '' : v);
+  if (/[",;\n\r]/.test(s)) s = '"' + s.replace(/"/g, '""') + '"';
+  return s;
+}
+function generateCSV() {
+  if (cola.length === 0) { toast('Lista vac\u00eda', 'warn'); return; }
+  var rows = [];
+  rows.push(['Receta','Fecha','Ingrediente','Tipo','Porcentaje','Gramos','Prefermento']);
+  cola.forEach(function(r){
+    (r.dat.ings || []).forEach(function(i){
+      rows.push([
+        r.nom, r.fecha, i.n,
+        i.esH ? 'Harina' : 'Otro',
+        i.pct.toFixed(2),
+        Math.round(i.fin),
+        i.pref ? 'Si' : 'No'
+      ]);
+    });
+    (r.dat.prods || []).forEach(function(p){
+      rows.push([r.nom, r.fecha, p.fmt, 'Formato', '', p.c * p.p, '']);
+    });
+  });
+  var csv = '\uFEFF' + rows.map(function(row){
+    return row.map(csvEscape).join(';');
+  }).join('\r\n');
+  var blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+  var fecha = document.getElementById('fecha').value || new Date().toISOString().slice(0, 10);
+  downloadBlob(blob, 'Ordenes_' + fecha + '.csv');
+  toast('CSV descargado', 'success');
+}
+
+/* ========== TEMPERATURA DE AGUA ========== */
+function updateWaterTemp() {
+  var elDdt = document.getElementById('wtDDT');
+  var elAmb = document.getElementById('wtAmb');
+  var elFl = document.getElementById('wtFlour');
+  var elFr = document.getElementById('wtFric');
+  var result = document.getElementById('wtResult');
+  if (!elDdt || !elAmb || !elFl || !elFr || !result) return;
+  var ddt = parseNumber(elDdt.value);
+  var amb = parseNumber(elAmb.value);
+  var fl = parseNumber(elFl.value);
+  var fr = parseNumber(elFr.value);
+  var t = (3 * ddt) - amb - fl - fr;
+  if (!isFinite(t)) { result.textContent = 'T agua: -- \u00b0C'; return; }
+  result.textContent = 'T agua: ' + t.toFixed(1) + ' \u00b0C';
+}
+
+/* ========== AUTOTESTS ========== */
+function runSelfTests() {
+  var tests = [];
+  function assert(name, cond, extra) { tests.push({ name: name, ok: !!cond, extra: extra }); }
+
+  // escapeHtml
+  assert('escapeHtml < >', escapeHtml('<img src=x onerror=alert(1)>') === '&lt;img src=x onerror=alert(1)&gt;');
+  assert('escapeHtml &', escapeHtml('A & B') === 'A &amp; B');
+  assert('escapeHtml quotes', escapeHtml('"q\'') === '&quot;q&#39;');
+
+  // escapeXml
+  assert('escapeXml apos', escapeXml("it's") === 'it&apos;s');
+  assert('escapeXml amp', escapeXml('A & B') === 'A &amp; B');
+
+  // parseNumber
+  assert('parseNumber coma', parseNumber('1,5') === 1.5);
+  assert('parseNumber punto', parseNumber('1.5') === 1.5);
+  assert('parseNumber europeo', parseNumber('1.234,56') === 1234.56);
+  assert('parseNumber vacio', parseNumber('') === 0);
+  assert('parseNumber null', parseNumber(null) === 0);
+  assert('parseNumber texto', parseNumber('abc') === 0);
+
+  // Cálculo básico: 1000g harina + 600g agua + 20g sal → 162% suma
+  // Para masa total 1620g: factor = 1620 / 1.62 = 1000
+  // Harina final = 1000 * 1.0 = 1000g, agua = 600g, sal = 20g
+  // Comprobamos indirectamente montando un escenario in-memory
+  var H = [{ n: 'Harina', g: 1000, pct: 0, _isFlour: true, pref: false, c: 0.5 }];
+  var O = [
+    { n: 'Agua', g: 600, pct: 0, _isFlour: false, pref: false, c: 0 },
+    { n: 'Sal', g: 20, pct: 0, _isFlour: false, pref: false, c: 2 }
+  ];
+  var tH = 1000;
+  var sum = 0;
+  H.concat(O).forEach(function(i){ i.pct = (i.g / tH) * 100; sum += i.pct; });
+  var massTotal = 1620;
+  var factor = massTotal / (sum / 100);
+  var harFin = factor * (H[0].pct / 100);
+  var aguaFin = factor * (O[0].pct / 100);
+  assert('Harina final 1000g', Math.round(harFin) === 1000, 'got ' + harFin);
+  assert('Agua final 600g', Math.round(aguaFin) === 600, 'got ' + aguaFin);
+
+  // sanitizeSheetName
+  assert('sheetName corta', sanitizeSheetName('Pan [Centeno]/Trigo*?') === 'Pan CentenoTrigo');
+  assert('sheetName max 30', sanitizeSheetName('A'.repeat(60)).length === 30);
+
+  var passed = tests.filter(function(t){ return t.ok; }).length;
+  var failed = tests.filter(function(t){ return !t.ok; });
+  if (failed.length === 0) {
+    console.log('%c✓ ' + passed + ' tests pasados', 'color: #27ae60; font-weight: bold');
+  } else {
+    console.error('✗ ' + failed.length + ' tests fallidos de ' + tests.length);
+    failed.forEach(function(t){ console.error('  - ' + t.name, t.extra || ''); });
+  }
+  return { passed: passed, failed: failed.length };
+}
+
+/* ========== EVENTOS ========== */
+function setupEvents() {
+  // Header
+  document.getElementById('btnTheme').addEventListener('click', toggleTheme);
+  document.getElementById('btnExportDB').addEventListener('click', exportDB);
+  document.getElementById('btnImportDB').addEventListener('click', function(){
+    document.getElementById('fileImport').click();
+  });
+  document.getElementById('fileImport').addEventListener('change', function(e){
+    if (e.target.files && e.target.files[0]) importDBFromFile(e.target.files[0]);
+    e.target.value = '';
+  });
+  document.getElementById('btnPrint').addEventListener('click', function(){ window.print(); });
+
+  // Archivo
+  document.getElementById('selRecetas').addEventListener('change', function(e){ loadRecipeByName(e.target.value); });
+  document.getElementById('btnSave').addEventListener('click', saveRecipe);
+  document.getElementById('btnDup').addEventListener('click', duplicateRecipe);
+  document.getElementById('btnDel').addEventListener('click', deleteRecipe);
+  document.getElementById('btnReset').addEventListener('click', function(){
+    if (!confirm('\u00bfLimpiar todos los campos del formulario?')) return;
+    resetForm();
+  });
+
+  // Modal duplicar
+  document.getElementById('btnDupConfirm').addEventListener('click', confirmDuplicate);
+
+  // Escalado
+  document.getElementById('btnScale').addEventListener('click', applyScale);
+
+  // Añadir filas (delegación data-action)
+  document.addEventListener('click', function(e){
+    var t = e.target.closest('[data-action]');
+    if (!t) return;
+    var a = t.getAttribute('data-action');
+    if (a === 'add-harina') addIngredientRow('tHarinas');
+    else if (a === 'add-otro') addIngredientRow('tOtros');
+    else if (a === 'add-prod') addProdRow();
+    else if (a === 'rm-row') { t.closest('tr').remove(); calc(); }
+    else if (a === 'rm-cola') removeFromCola(parseInt(t.getAttribute('data-idx'), 10));
+    else if (a === 'edit-cola') editCola(parseInt(t.getAttribute('data-idx'), 10));
+  });
+  document.addEventListener('click', function(e){
+    if (e.target.matches('[data-close-modal]')) {
+      e.target.closest('.modal-backdrop').classList.remove('show');
+    }
+  });
+  // Cerrar modal con ESC
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'Escape') {
+      var open = document.querySelector('.modal-backdrop.show');
+      if (open) open.classList.remove('show');
+    }
+    // Atajos: Ctrl/Cmd+S guardar, Ctrl+Enter añadir a cola
+    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+      e.preventDefault(); saveRecipe();
+    }
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      e.preventDefault(); addToCola();
+    }
+  });
+
+  // Inputs de tablas → recalcular (input en todas las filas, delegación)
+  document.addEventListener('input', function(e){
+    var tr = e.target.closest('tr');
+    if (!tr) return;
+    if (e.target.matches('.i-g, .i-c, .i-n, .i-pref, .p-c, .p-p, .p-n')) {
+      scheduleCalc();
+    }
+  });
+  document.addEventListener('change', function(e){
+    if (e.target.matches('.i-pref')) scheduleCalc();
+  });
+
+  // Cola
+  document.getElementById('btnAddCola').addEventListener('click', addToCola);
+  document.getElementById('btnClearQueue').addEventListener('click', clearQueue);
+  document.getElementById('btnExcel').addEventListener('click', generateExcel);
+  document.getElementById('btnCSV').addEventListener('click', generateCSV);
+
+  // Temperatura de agua
+  ['wtDDT','wtAmb','wtFlour','wtFric'].forEach(function(id){
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('input', updateWaterTemp);
+    el.addEventListener('change', updateWaterTemp);
+    el.addEventListener('blur', updateWaterTemp);
+  });
+  // Recalcular al abrir el panel por si los valores se modificaron estando cerrado
+  var waterDetails = document.querySelector('details.water-calc');
+  if (waterDetails) {
+    waterDetails.addEventListener('toggle', function(){
+      if (waterDetails.open) updateWaterTemp();
+    });
+  }
+}
+
+/* ========== VOZ: DICTADO DE RECETAS ========== */
+var VoiceRecipe = (function() {
+  var Recog = window.SpeechRecognition || window.webkitSpeechRecognition;
+  var supported = !!Recog;
+  var rec = null;
+  var listening = false;
+  var state = 'idle';
+  var draft = { nombre: '', harinas: [], otros: [], prods: [] };
+  var interimBuf = '';
+
+  var NUMS = {
+    'cero':0,'uno':1,'un':1,'una':1,'dos':2,'tres':3,'cuatro':4,'cinco':5,
+    'seis':6,'siete':7,'ocho':8,'nueve':9,'diez':10,'once':11,'doce':12,
+    'trece':13,'catorce':14,'quince':15,'dieciseis':16,'diecisiete':17,
+    'dieciocho':18,'diecinueve':19,'veinte':20,'veintiuno':21,'veintiun':21,
+    'veintidos':22,'veintitres':23,'veinticuatro':24,'veinticinco':25,
+    'veintiseis':26,'veintisiete':27,'veintiocho':28,'veintinueve':29,
+    'treinta':30,'cuarenta':40,'cincuenta':50,'sesenta':60,'setenta':70,
+    'ochenta':80,'noventa':90,'cien':100,'ciento':100
+  };
+
+  function normalize(s) {
+    return String(s == null ? '' : s).toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+      // Quita puntos y comas EXCEPTO los que están entre dos dígitos (decimales 1.5 o 1,5)
+      .replace(/[.,](?!\d)|(?<!\d)[.,]/g, ' ')
+      .replace(/[;:!?\u00bf\u00a1]/g,' ')
+      .replace(/\s+/g,' ').trim();
+  }
+
+  function wordsToDigits(text) {
+    var t = ' ' + normalize(text) + ' ';
+    // decimales con "coma" o "punto"
+    t = t.replace(/(\w+)\s+(?:coma|punto)\s+(\w+)/g, function(m, a, b) {
+      if (NUMS[a] == null || NUMS[b] == null) return m;
+      return NUMS[a] + '.' + NUMS[b];
+    });
+    // decenas + "y" + unidad: "setenta y cinco" -> 75
+    t = t.replace(/\b(treinta|cuarenta|cincuenta|sesenta|setenta|ochenta|noventa)\s+y\s+(uno|un|una|dos|tres|cuatro|cinco|seis|siete|ocho|nueve)\b/g,
+      function(m, a, b) { return NUMS[a] + NUMS[b]; });
+    // "ciento X" -> 100+X
+    t = t.replace(/\bciento\s+(\w+)\b/g, function(m, a) {
+      var n = NUMS[a]; if (n == null || n < 1 || n > 99) return m; return 100 + n;
+    });
+    // palabras sueltas
+    t = t.replace(/\b(cero|uno|un|una|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|once|doce|trece|catorce|quince|dieciseis|diecisiete|dieciocho|diecinueve|veinte|veintiuno|veintiun|veintidos|veintitres|veinticuatro|veinticinco|veintiseis|veintisiete|veintiocho|veintinueve|treinta|cuarenta|cincuenta|sesenta|setenta|ochenta|noventa|cien|ciento)\b/g,
+      function(w) { return NUMS[w]; });
+    return t.replace(/\s+/g,' ').trim();
+  }
+
+  function stripUnits(text) {
+    // IMPORTANTE: quita las unidades ANTES de wordsToDigits, para evitar
+    // que "ciento" en "por ciento" se convierta a 100.
+    var t = normalize(text);
+    t = t.replace(/\bpor ?ciento\b/g, ' ');
+    t = t.replace(/\bporciento\b/g, ' ');
+    t = t.replace(/%/g, ' ');
+    t = t.replace(/\b(kilos?|kg)\b/g, ' ');
+    t = t.replace(/\b(gramos?|grs?|g)\b/g, ' ');
+    return t.replace(/\s+/g, ' ').trim();
+  }
+
+  function extractNumbers(text) {
+    var cleaned = stripUnits(text);
+    var conv = wordsToDigits(cleaned);
+    // fracciones comunes en palabras
+    conv = conv.replace(/\bmedio\b/g, '0.5').replace(/\bmedia\b/g, '0.5');
+    conv = conv.replace(/\bun cuarto\b/g, '0.25').replace(/\btres cuartos\b/g, '0.75');
+    // Acepta decimales con "." o "," (por si el reconocedor devuelve "1,5")
+    var m = conv.match(/\d+(?:[.,]\d+)?/g);
+    return m ? m.map(function(s){ return parseFloat(s.replace(',', '.')); })
+                .filter(function(n){ return isFinite(n); }) : [];
+  }
+
+  function detectUnit(text) {
+    var t = normalize(text);
+    if (/\b(kilos?|kg)\b/.test(t)) return 'kg';
+    if (/\b(gramos?|grs?|g)\b/.test(t)) return 'g';
+    if (/%|\bpor ?ciento\b|\bporciento\b/.test(t)) return 'pct';
+    return null;
+  }
+
+  function extractNameBefore(text) {
+    var cleaned = stripUnits(text);
+    var conv = wordsToDigits(cleaned);
+    // quita fracciones en palabras
+    conv = conv.replace(/\b(medio|media|un cuarto|tres cuartos)\b/g, ' ');
+    // quita conectores
+    conv = conv.replace(/\bde\b/g, ' ');
+    // quita todos los números
+    conv = conv.replace(/\d+(?:\.\d+)?/g, ' ').replace(/\s+/g, ' ').trim();
+    if (!conv) return '';
+    return conv.charAt(0).toUpperCase() + conv.slice(1);
+  }
+
+  function parseIngredient(text) {
+    var nums = extractNumbers(text);
+    if (!nums.length) return null;
+    var val = nums[nums.length - 1];
+    if (val <= 0) return null;
+    var unitRaw = detectUnit(text);
+    var unit, display;
+    if (unitRaw === 'kg') { unit = 'g'; val = val * 1000; display = 'kg'; }
+    else if (unitRaw === 'g') { unit = 'g'; display = 'g'; }
+    else { unit = 'pct'; display = '%'; }
+    // validación por tipo
+    if (unit === 'pct' && val > 300) return null;        // un % >300 no tiene sentido
+    if (unit === 'g' && val > 1000000) return null;      // 1000 kg tope
+    var name = extractNameBefore(text);
+    if (!name) return null;
+    return { n: name, val: val, unit: unit, display: display, pref: false };
+  }
+
+  // ---- SOPORTE PARA DICTAR VARIOS INGREDIENTES EN UNA MISMA FRASE ----
+  function preprocessForSplit(text) {
+    // Prepara el texto para poder separarlo por límites de número,
+    // convirtiendo todas las palabras numéricas a dígitos y eliminando
+    // el "y" conector (sin afectar los compuestos "sesenta y cinco").
+    var t = String(text == null ? '' : text).toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+      .replace(/[.,;:!?\u00bf\u00a1]/g, ' ')
+      .replace(/\s+/g, ' ').trim();
+    // Protege "por ciento" para que "ciento" no se convierta en 100
+    t = t.replace(/\bpor ?ciento\b/g, '\u00A7PCT\u00A7');
+    t = t.replace(/\bporciento\b/g, '\u00A7PCT\u00A7');
+    // decenas + y + unidad
+    t = t.replace(
+      /\b(treinta|cuarenta|cincuenta|sesenta|setenta|ochenta|noventa)\s+y\s+(uno|un|una|dos|tres|cuatro|cinco|seis|siete|ocho|nueve)\b/g,
+      function(m, a, b) { return NUMS[a] + NUMS[b]; }
+    );
+    // ciento + X
+    t = t.replace(/\bciento\s+(\w+)\b/g, function(m, a) {
+      var n = NUMS[a]; if (n == null || n < 1 || n > 99) return m; return 100 + n;
+    });
+    // decimales X coma Y
+    t = t.replace(/(\w+)\s+(?:coma|punto)\s+(\w+)/g, function(m, a, b) {
+      var na = NUMS[a], nb = NUMS[b];
+      if (na == null || nb == null) return m;
+      return na + '.' + nb;
+    });
+    // palabras sueltas
+    t = t.replace(/\b(cero|uno|un|una|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|once|doce|trece|catorce|quince|dieciseis|diecisiete|dieciocho|diecinueve|veinte|veintiuno|veintiun|veintidos|veintitres|veinticuatro|veinticinco|veintiseis|veintisiete|veintiocho|veintinueve|treinta|cuarenta|cincuenta|sesenta|setenta|ochenta|noventa|cien|ciento)\b/g,
+      function(w) { return NUMS[w]; });
+    // elimina "y" conector (ya no hay decena+y+unidad pendientes)
+    t = t.replace(/\s+y\s+/g, ' ');
+    // fracciones
+    t = t.replace(/\bmedio\b/g, '0.5').replace(/\bmedia\b/g, '0.5');
+    t = t.replace(/\bun cuarto\b/g, '0.25').replace(/\btres cuartos\b/g, '0.75');
+    // restaura "por ciento"
+    t = t.replace(/\u00A7PCT\u00A7/g, 'por ciento');
+    return t.replace(/\s+/g, ' ').trim();
+  }
+
+  function splitByMultipleNumbers(text) {
+    // Separa en segmentos donde cada segmento tiene UN número.
+    // Los tokens de unidad ("gramos", "kilos", "por ciento") que vengan tras
+    // el número se incluyen en el segmento que les corresponde.
+    var tokens = text.split(/\s+/).filter(Boolean);
+    if (!tokens.length) return [];
+    var segments = [];
+    var current = [];
+    var hasNum = false;
+    function isNum(t) { return /^\d+(?:\.\d+)?$/.test(t); }
+    var unitRegex = /^(gramos?|grs?|g|kilos?|kg|%)$/i;
+    tokens.forEach(function(tok) {
+      if (isNum(tok)) {
+        if (hasNum) {
+          // Encontrar el último número en `current` y cortar ahí
+          var idx = current.length - 1;
+          while (idx >= 0 && !isNum(current[idx])) idx--;
+          var seg = current.slice(0, idx + 1);
+          var tail = current.slice(idx + 1);
+          // Captura unidades contiguas al final del segmento previo
+          var j = 0, unidadTail = [];
+          while (j < tail.length && unitRegex.test(tail[j])) {
+            unidadTail.push(tail[j]); j++;
+          }
+          var nombreNuevo = tail.slice(j);
+          // "por ciento" son 2 palabras: también lo reclamamos como unidad
+          if (nombreNuevo.length >= 2 && nombreNuevo[0] === 'por' && nombreNuevo[1] === 'ciento') {
+            unidadTail = unidadTail.concat(['por', 'ciento']);
+            nombreNuevo = nombreNuevo.slice(2);
+          }
+          seg = seg.concat(unidadTail);
+          segments.push(seg.join(' '));
+          current = nombreNuevo.concat([tok]);
+          hasNum = true;
+        } else {
+          current.push(tok);
+          hasNum = true;
+        }
+      } else {
+        current.push(tok);
+      }
+    });
+    if (current.length) segments.push(current.join(' '));
+    return segments;
+  }
+
+  function parseMultiIngredient(text) {
+    var pre = preprocessForSplit(text);
+    var fragments = splitByMultipleNumbers(pre);
+    var results = [];
+    fragments.forEach(function(f) {
+      var r = parseIngredient(f);
+      if (r) results.push(r);
+    });
+    return results;
+  }
+
+  function fmtIngredient(item) {
+    if (item.unit === 'pct') return item.n + ' \u2014 ' + item.val + '%';
+    // gramos: mostrar como kg si lo dictaste así y es entero de miles
+    if (item.display === 'kg') {
+      return item.n + ' \u2014 ' + (item.val / 1000) + ' kg';
+    }
+    return item.n + ' \u2014 ' + item.val + ' g';
+  }
+
+  function parseProd(text) {
+    var conv = wordsToDigits(text);
+    var nums = extractNumbers(text);
+    if (nums.length < 2) return null;
+    var uds = nums[0], peso = nums[nums.length - 1];
+    if (uds <= 0 || peso <= 0) return null;
+    // formato: palabras antes del primer número
+    var before = conv.split(/\d/)[0].replace(/\b(de|y|con)\b/g,' ').replace(/\s+/g,' ').trim();
+    if (!before) {
+      var mid = conv.match(/\d+\s+(\w+)/);
+      before = mid ? mid[1] : 'Pieza';
+    }
+    before = before.charAt(0).toUpperCase() + before.slice(1);
+    return { fmt: before, c: uds, p: peso };
+  }
+
+  function detectCommand(text) {
+    var t = normalize(text);
+    if (/^(siguiente|sigue|continuar|continua)\b/.test(t)) return 'next';
+    if (/^(repetir|repite|otra vez|de nuevo|borra esto)\b/.test(t)) return 'repeat';
+    if (/^(cancelar|cancela|salir|cerrar)\b/.test(t)) return 'cancel';
+    if (/(borrar|eliminar|quitar)\s+(el |la )?(ultimo|ultima)\b/.test(t)) return 'undo';
+    if (/^(terminar|finalizar|listo|acabar|guardar|aplicar)\b/.test(t)) return 'finish';
+    return null;
+  }
+
+  function el(id) { return document.getElementById(id); }
+
+  function setStatus(msg, mode) {
+    var s = el('voiceStatus');
+    // msg es contenido controlado por el propio módulo (nunca input de usuario),
+    // por eso es seguro usar innerHTML para que respete entidades HTML y acentos.
+    s.innerHTML = msg;
+    s.classList.toggle('listening', mode === 'listening');
+  }
+
+  function setLive(html) {
+    el('voiceLive').innerHTML = html || '<em style="color:var(--text-faint);">Esperando&hellip;</em>';
+  }
+
+  function renderCaptured() {
+    var box = el('voiceCaptured');
+    box.innerHTML = '';
+    var items = [];
+    if (state === 'nombre' && draft.nombre) items = [draft.nombre];
+    else if (state === 'harinas') items = draft.harinas.map(fmtIngredient);
+    else if (state === 'otros') items = draft.otros.map(fmtIngredient);
+    else if (state === 'produccion') items = draft.prods.map(function(x){ return x.fmt + ': ' + x.c + ' \u00D7 ' + x.p + 'g'; });
+    items.forEach(function(txt) {
+      var chip = document.createElement('span');
+      chip.className = 'voice-chip';
+      chip.textContent = txt;
+      box.appendChild(chip);
+    });
+    var hasAny = (state === 'nombre' && draft.nombre)
+      || (state === 'harinas' && draft.harinas.length)
+      || (state === 'otros' && draft.otros.length)
+      || (state === 'produccion' && draft.prods.length);
+    el('btnVoiceUndo').disabled = !hasAny;
+  }
+
+  function updateStep() {
+    var labels = {
+      nombre: { step: 'Paso 1 de 5: Nombre de la receta',
+                tip: 'Di el nombre de la receta. Ejemplo: &laquo;Pan de trigo r&uacute;stico&raquo;.' },
+      harinas: { step: 'Paso 2 de 5: Harinas',
+                 tip: 'Di las harinas con su cantidad. Puedes dictar una o varias a la vez:<br>&bull; <b>Porcentaje</b>: &laquo;Harina trigo 70&raquo; / &laquo;Harina trigo 70 por ciento&raquo;<br>&bull; <b>Gramos</b>: &laquo;Harina trigo 500 gramos&raquo;<br>&bull; <b>Kilos</b>: &laquo;Harina trigo un kilo&raquo; / &laquo;medio kilo&raquo;<br>Se separan cada vez que haya un n\u00famero nuevo. Di &laquo;siguiente&raquo; para continuar.' },
+      otros: { step: 'Paso 3 de 5: Otros ingredientes',
+               tip: 'Dicta cada ingrediente con su cantidad. Puedes decir varios seguidos (cada producto va por separado).<br>Ejemplos: &laquo;Agua 65, sal 20 gramos, levadura 1, masa madre medio kilo&raquo;. Di &laquo;siguiente&raquo; para continuar.' },
+      produccion: { step: 'Paso 4 de 5: Producci\u00F3n',
+                    tip: 'Di formato, unidades y peso. Ejemplo: &laquo;20 piezas de 500 gramos&raquo;. A\u00F1ade los que necesites y di &laquo;siguiente&raquo;.' },
+      review: { step: 'Paso 5 de 5: Revisi\u00F3n',
+                tip: 'Revisa el resultado. Pulsa &laquo;Aplicar&raquo; para cargar la receta en el formulario (luego podr\u00E1s retocarla antes de guardar).' }
+    };
+    var info = labels[state];
+    if (info) {
+      el('voiceStepLabel').textContent = info.step;
+      el('voiceInstruction').innerHTML = info.tip;
+    }
+    var nextBtn = el('btnVoiceNext');
+    nextBtn.textContent = state === 'review' ? 'Aplicar \u2713' : (state === 'produccion' ? 'Finalizar \u2192' : 'Siguiente \u2192');
+    // review: oculta live/captured, muestra tabla
+    var reviewBox = el('voiceReview');
+    if (state === 'review') {
+      el('voiceLive').style.display = 'none';
+      el('voiceCaptured').style.display = 'none';
+      el('btnVoiceMic').style.display = 'none';
+      el('btnVoiceUndo').style.display = 'none';
+      reviewBox.style.display = 'block';
+      reviewBox.innerHTML = buildReviewHtml();
+    } else {
+      el('voiceLive').style.display = '';
+      el('voiceCaptured').style.display = '';
+      el('btnVoiceMic').style.display = '';
+      el('btnVoiceUndo').style.display = '';
+      reviewBox.style.display = 'none';
+    }
+  }
+
+  function buildReviewHtml() {
+    var html = '<table class="voice-review-table">';
+    html += '<tr><th>Nombre</th><td>' + escapeHtml(draft.nombre || '(sin nombre)') + '</td></tr>';
+    html += '<tr><th>Harinas</th><td>' + (draft.harinas.length
+      ? draft.harinas.map(function(x){ return escapeHtml(fmtIngredient(x)); }).join('<br>')
+      : '(ninguna)') + '</td></tr>';
+    html += '<tr><th>Otros</th><td>' + (draft.otros.length
+      ? draft.otros.map(function(x){ return escapeHtml(fmtIngredient(x)); }).join('<br>')
+      : '(ninguno)') + '</td></tr>';
+    html += '<tr><th>Producci\u00F3n</th><td>' + (draft.prods.length
+      ? draft.prods.map(function(x){ return escapeHtml(x.fmt) + ': ' + x.c + ' \u00D7 ' + x.p + 'g'; }).join('<br>')
+      : '(ninguna)') + '</td></tr>';
+    // nota sobre la normalización
+    var hasWeight = draft.harinas.concat(draft.otros).some(function(x){ return x.unit === 'g'; });
+    var allPct = draft.harinas.concat(draft.otros).every(function(x){ return x.unit === 'pct'; });
+    if (!hasWeight && allPct && (draft.harinas.length || draft.otros.length)) {
+      html += '<tr><th></th><td style="font-size:0.8rem;color:var(--text-faint);">Al aplicar, los porcentajes se convierten a gramos con base 1 kg de harina total.</td></tr>';
+    }
+    html += '</table>';
+    return html;
+  }
+
+  function handleTranscript(text) {
+    var cmd = detectCommand(text);
+    if (cmd === 'cancel') { close(); return; }
+    if (cmd === 'next') { goNext(); return; }
+    if (cmd === 'finish') { if (state === 'produccion') goNext(); return; }
+    if (cmd === 'undo') { undoLast(); return; }
+    if (cmd === 'repeat') { setLive(''); return; }
+
+    if (state === 'nombre') {
+      var name = text.trim();
+      if (name) {
+        draft.nombre = name.charAt(0).toUpperCase() + name.slice(1);
+        renderCaptured();
+      }
+    } else if (state === 'harinas') {
+      var items = parseMultiIngredient(text);
+      if (items.length) {
+        items.forEach(function(it){ draft.harinas.push(it); });
+        renderCaptured();
+      } else {
+        setStatus('No entend\u00ED. Formato: &laquo;Harina X 70&raquo;', 'warn');
+      }
+    } else if (state === 'otros') {
+      var items2 = parseMultiIngredient(text);
+      if (items2.length) {
+        items2.forEach(function(it){ draft.otros.push(it); });
+        renderCaptured();
+      } else {
+        setStatus('No entend\u00ED. Formato: &laquo;Agua 65&raquo;', 'warn');
+      }
+    } else if (state === 'produccion') {
+      var p = parseProd(text);
+      if (p) { draft.prods.push(p); renderCaptured(); }
+      else setStatus('No entend\u00ED. Formato: &laquo;20 piezas de 500 gramos&raquo;', 'warn');
+    }
+  }
+
+  function undoLast() {
+    if (state === 'nombre') draft.nombre = '';
+    else if (state === 'harinas') draft.harinas.pop();
+    else if (state === 'otros') draft.otros.pop();
+    else if (state === 'produccion') draft.prods.pop();
+    renderCaptured();
+  }
+
+  function goNext() {
+    stopListening();
+    var order = ['nombre','harinas','otros','produccion','review'];
+    var idx = order.indexOf(state);
+    if (idx < 0 || idx >= order.length - 1) {
+      if (state === 'review') apply();
+      return;
+    }
+    state = order[idx + 1];
+    renderCaptured();
+    updateStep();
+    setStatus(state === 'review' ? 'Revisi\u00F3n' : 'Pulsa &laquo;Empezar&raquo; para dictar', '');
+    setLive('');
+  }
+
+  function startListening() {
+    if (!supported || listening) return;
+    try {
+      rec = new Recog();
+      rec.lang = 'es-ES';
+      rec.interimResults = true;
+      rec.continuous = true;
+      rec.onresult = function(ev) {
+        var finalTxt = '', interim = '';
+        for (var i = ev.resultIndex; i < ev.results.length; i++) {
+          var r = ev.results[i];
+          if (r.isFinal) finalTxt += r[0].transcript;
+          else interim += r[0].transcript;
+        }
+        interimBuf = interim;
+        if (finalTxt.trim()) {
+          setLive('<strong>' + escapeHtml(finalTxt.trim()) + '</strong>');
+          handleTranscript(finalTxt.trim());
+        } else if (interim) {
+          setLive('<em>' + escapeHtml(interim) + '</em>');
+        }
+      };
+      rec.onerror = function(ev) {
+        listening = false;
+        setStatus('Error: ' + (ev.error || 'desconocido') + '. Pulsa &laquo;Empezar&raquo; para reintentar.', '');
+        el('btnVoiceMic').innerHTML = '&#x1F3A4; Empezar';
+      };
+      rec.onend = function() {
+        if (listening) {
+          // en continuous=true Chrome a veces corta: reintenta
+          try { rec.start(); } catch (_) { listening = false; }
+        } else {
+          setStatus('\u23F8 Parado', '');
+          el('btnVoiceMic').innerHTML = '&#x1F3A4; Empezar';
+        }
+      };
+      rec.start();
+      listening = true;
+      setStatus('\u25CF Escuchando\u2026', 'listening');
+      el('btnVoiceMic').innerHTML = '\u23F9 Parar';
+    } catch (e) {
+      setStatus('No se pudo iniciar: ' + e.message, '');
+    }
+  }
+
+  function stopListening() {
+    listening = false;
+    if (rec) { try { rec.stop(); } catch (_) {} rec = null; }
+    setStatus('\u23F8 Parado', '');
+    el('btnVoiceMic').innerHTML = '&#x1F3A4; Empezar';
+  }
+
+  function toggleMic() {
+    if (listening) stopListening(); else startListening();
+  }
+
+  function open() {
+    if (!supported) {
+      toast('Dictado no soportado en este navegador', 'error');
+      return;
+    }
+    draft = { nombre: '', harinas: [], otros: [], prods: [] };
+    state = 'nombre';
+    el('modalVoice').classList.add('show');
+    renderCaptured();
+    updateStep();
+    setLive('');
+    setStatus('Pulsa &laquo;Empezar&raquo; para comenzar', '');
+  }
+
+  function close() {
+    stopListening();
+    el('modalVoice').classList.remove('show');
+    state = 'idle';
+  }
+
+  function normalizeToGrams() {
+    // Determina la base de harina (gramos totales) y convierte todo a gramos
+    var weightedH = draft.harinas.filter(function(h){ return h.unit === 'g'; });
+    var pctH = draft.harinas.filter(function(h){ return h.unit === 'pct'; });
+    var flourBase;
+    if (weightedH.length && !pctH.length) {
+      flourBase = weightedH.reduce(function(s,h){ return s + h.val; }, 0);
+    } else if (!weightedH.length && pctH.length) {
+      flourBase = 1000; // base 1 kg para baker's %
+    } else if (weightedH.length && pctH.length) {
+      // mixto: usa gramos; convierte % a gramos proporcionales al sumatorio de harinas en peso
+      var sumGramsH = weightedH.reduce(function(s,h){ return s + h.val; }, 0);
+      var sumPctH = pctH.reduce(function(s,h){ return s + h.val; }, 0);
+      // interpretamos las % como "resto" hasta 100; añadimos al total
+      if (sumPctH > 0 && sumPctH < 100) {
+        var totalScale = sumGramsH / (1 - sumPctH / 100); // 100% base implícita
+        flourBase = totalScale;
+      } else {
+        flourBase = sumGramsH;
+      }
+    } else {
+      flourBase = 1000;
+    }
+    function toGrams(item) {
+      if (item.unit === 'g') return item.val;
+      return item.val * flourBase / 100;
+    }
+    return {
+      flourBase: flourBase,
+      harinas: draft.harinas.map(function(h){
+        return { n: h.n, g: Math.round(toGrams(h) * 100) / 100, pref: !!h.pref };
+      }),
+      otros: draft.otros.map(function(o){
+        return { n: o.n, g: Math.round(toGrams(o) * 100) / 100, pref: !!o.pref };
+      })
+    };
+  }
+
+  function apply() {
+    var norm = normalizeToGrams();
+    document.querySelector('#tHarinas tbody').innerHTML = '';
+    document.querySelector('#tOtros tbody').innerHTML = '';
+    document.querySelector('#tProd tbody').innerHTML = '';
+    document.getElementById('nomReceta').value = draft.nombre || '';
+    document.getElementById('selRecetas').value = '';
+    if (norm.harinas.length) norm.harinas.forEach(function(h){ addIngredientRow('tHarinas', h); });
+    else addIngredientRow('tHarinas');
+    if (norm.otros.length) norm.otros.forEach(function(o){ addIngredientRow('tOtros', o); });
+    else addIngredientRow('tOtros');
+    if (draft.prods.length) draft.prods.forEach(function(p){ addProdRow(p); });
+    else addProdRow();
+    calc();
+    close();
+    toast('Receta dictada aplicada. Revisa y guarda.', 'success');
+  }
+
+  function init() {
+    if (!supported) return;
+    var btn = el('btnVoiceOpen');
+    if (btn) btn.hidden = false;
+    if (btn) btn.addEventListener('click', open);
+    el('btnVoiceCancel').addEventListener('click', close);
+    el('btnVoiceMic').addEventListener('click', toggleMic);
+    el('btnVoiceUndo').addEventListener('click', undoLast);
+    el('btnVoiceNext').addEventListener('click', goNext);
+  }
+
+  return {
+    init: init,
+    supported: supported,
+    // hooks de test (seguros: no hacen efectos secundarios fuera de la app)
+    _test: {
+      parseIngredient: parseIngredient,
+      parseMultiIngredient: parseMultiIngredient,
+      splitByMultipleNumbers: splitByMultipleNumbers,
+      preprocessForSplit: preprocessForSplit,
+      parseProd: parseProd,
+      detectCommand: detectCommand,
+      wordsToDigits: wordsToDigits,
+      handleTranscript: handleTranscript,
+      undoLast: undoLast,
+      getDraft: function(){ return draft; },
+      getState: function(){ return state; },
+      setState: function(s){ state = s; renderCaptured(); updateStep(); },
+      open: open,
+      close: close,
+      normalizeToGrams: normalizeToGrams
+    }
+  };
+})();
+
+/* ========== VOZ: DICTADO DE PROCEDIMIENTO (5 FASES) ========== */
+var PROC_PHASES = [
+  { key: 'amasado',      label: 'Amasado' },
+  { key: 'proceso',      label: 'Proceso' },
+  { key: 'fermentacion', label: 'Fermentaci\u00F3n' },
+  { key: 'coccion',      label: 'Cocci\u00F3n' },
+  { key: 'finalizacion', label: 'Finalizaci\u00F3n' }
+];
+
+/* Convierte un procedimiento que puede ser:
+   - string (formato antiguo)  -> { amasado: str, proceso: '', ... }
+   - object parcial            -> rellenamos keys faltantes
+   - null/undefined            -> todas vacías */
+function normalizeProc(val) {
+  var out = { amasado:'', proceso:'', fermentacion:'', coccion:'', finalizacion:'' };
+  if (!val) return out;
+  if (typeof val === 'string') {
+    out.amasado = val;
+    return out;
+  }
+  if (typeof val === 'object') {
+    for (var i = 0; i < PROC_PHASES.length; i++) {
+      var k = PROC_PHASES[i].key;
+      out[k] = (val[k] != null ? String(val[k]) : '');
+    }
+  }
+  return out;
+}
+
+function readProcFromForm() {
+  var obj = {};
+  for (var i = 0; i < PROC_PHASES.length; i++) {
+    var k = PROC_PHASES[i].key;
+    var ta = document.getElementById('procPhase_' + k);
+    obj[k] = ta ? ta.value : '';
+  }
+  return obj;
+}
+
+function writeProcToForm(procObj) {
+  var norm = normalizeProc(procObj);
+  for (var i = 0; i < PROC_PHASES.length; i++) {
+    var k = PROC_PHASES[i].key;
+    var ta = document.getElementById('procPhase_' + k);
+    if (ta) ta.value = norm[k];
+    // marca el details si tiene contenido
+    var det = ta ? ta.closest('details.proc-phase') : null;
+    if (det) det.classList.toggle('has-text', !!(norm[k] && norm[k].trim()));
+  }
+}
+
+function clearProcForm() {
+  writeProcToForm({ amasado:'', proceso:'', fermentacion:'', coccion:'', finalizacion:'' });
+}
+
+/* Marca visual de "tiene texto" en las phases al cambiar manualmente */
+function attachProcPhaseListeners() {
+  for (var i = 0; i < PROC_PHASES.length; i++) {
+    var k = PROC_PHASES[i].key;
+    var ta = document.getElementById('procPhase_' + k);
+    if (!ta) continue;
+    ta.addEventListener('input', (function(key){
+      return function(ev) {
+        var det = ev.target.closest('details.proc-phase');
+        if (det) det.classList.toggle('has-text', !!ev.target.value.trim());
+      };
+    })(k));
+  }
+}
+
+var ProcedureVoice = (function() {
+  var Recog = window.SpeechRecognition || window.webkitSpeechRecognition;
+  var supported = !!Recog;
+  var rec = null;
+  var listening = false;
+  var currentPhaseIdx = 0;      // 0..4
+  var draft = {};               // { amasado:'', proceso:'', ... } buffer temporal del modal
+
+  function el(id) { return document.getElementById(id); }
+
+  function setStatus(msg, mode) {
+    var s = el('procStatus');
+    if (!s) return;
+    s.innerHTML = msg;
+    s.classList.toggle('listening', mode === 'listening');
+  }
+
+  function setLive(html) {
+    var l = el('procLive');
+    if (l) l.innerHTML = html || '<em style="color:var(--text-faint);">Esperando&hellip;</em>';
+  }
+
+  function normalizeStr(s) {
+    return String(s == null ? '' : s).toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+      .replace(/[.,;:!?\u00bf\u00a1]/g,' ')
+      .replace(/\s+/g,' ').trim();
+  }
+
+  /* Detecta comandos. Si hay "paso N" devuelve un objeto {cmd:'goto', idx:N-1} */
+  function detectCommand(text) {
+    var t = normalizeStr(text);
+    if (/^(cancelar|cancela|salir|cerrar)\b/.test(t)) return 'cancel';
+    if (/^(aplicar|aplica|guardar|guarda|listo|terminar|finalizar el procedimiento|procedimiento terminado)\b/.test(t)) return 'apply';
+    if (/^(borrar|borra|limpiar|limpia)\b/.test(t)) return 'clear';
+    if (/^(nueva linea|nuevo parrafo|punto y aparte|salto de linea)\b/.test(t)) return 'newline';
+    if (/^(siguiente|sigue|siguiente paso|adelante)\b/.test(t)) return 'next';
+    if (/^(anterior|atras|atrasar|paso anterior|volver)\b/.test(t)) return 'prev';
+    // paso N
+    var m = t.match(/^(?:paso|ir a(?:l paso)?)\s+(1|2|3|4|5|uno|dos|tres|cuatro|cinco|primero|segundo|tercero|cuarto|quinto)\b/);
+    if (m) {
+      var map = { '1':0,'uno':0,'primero':0,
+                  '2':1,'dos':1,'segundo':1,
+                  '3':2,'tres':2,'tercero':2,
+                  '4':3,'cuatro':3,'cuarto':3,
+                  '5':4,'cinco':4,'quinto':4 };
+      var idx = map[m[1]];
+      if (idx != null) return { cmd: 'goto', idx: idx };
+    }
+    // por nombre de fase
+    if (/\bamasad(o|a)\b/.test(t)) return { cmd: 'goto', idx: 0 };
+    if (/\bproces(o|a)\b/.test(t) && !/\bprocedimiento\b/.test(t)) return { cmd: 'goto', idx: 1 };
+    if (/\bfermentacion\b/.test(t)) return { cmd: 'goto', idx: 2 };
+    if (/\bcoccion\b/.test(t)) return { cmd: 'goto', idx: 3 };
+    if (/\bfinalizacion\b/.test(t)) return { cmd: 'goto', idx: 4 };
+    return null;
+  }
+
+  function appendText(txt) {
+    var ta = el('procDictated');
+    if (!ta) return;
+    var cur = ta.value;
+    var sep = '';
+    if (cur && cur.length) {
+      var last = cur.charAt(cur.length - 1);
+      if (last !== '\n' && last !== ' ') sep = ' ';
+    }
+    var addition = txt;
+    var startsNewLine = !cur || cur.charAt(cur.length - 1) === '\n';
+    if (startsNewLine && addition.length) {
+      addition = addition.charAt(0).toUpperCase() + addition.slice(1);
+    }
+    ta.value = cur + sep + addition;
+    ta.scrollTop = ta.scrollHeight;
+    saveDraftFromTa();
+  }
+
+  function insertNewline() {
+    var ta = el('procDictated');
+    if (!ta) return;
+    ta.value = ta.value + '\n';
+    ta.scrollTop = ta.scrollHeight;
+    saveDraftFromTa();
+  }
+
+  function clearBuffer() {
+    var ta = el('procDictated');
+    if (ta) ta.value = '';
+    saveDraftFromTa();
+    setStatus('Paso borrado. Pulsa &laquo;Empezar&raquo; para dictar', '');
+  }
+
+  function saveDraftFromTa() {
+    var ta = el('procDictated');
+    if (!ta) return;
+    var k = PROC_PHASES[currentPhaseIdx].key;
+    draft[k] = ta.value;
+  }
+
+  function loadPhaseToTa() {
+    var ta = el('procDictated');
+    var k = PROC_PHASES[currentPhaseIdx].key;
+    if (ta) ta.value = draft[k] || '';
+    updateStepLabel();
+    renderNav();
+  }
+
+  function gotoPhase(idx) {
+    if (idx < 0 || idx >= PROC_PHASES.length) return;
+    saveDraftFromTa();
+    currentPhaseIdx = idx;
+    loadPhaseToTa();
+    setLive('');
+  }
+
+  function updateStepLabel() {
+    var lbl = el('procStepLabel');
+    if (lbl) {
+      lbl.textContent = 'Paso ' + (currentPhaseIdx + 1) + ' de 5: ' + PROC_PHASES[currentPhaseIdx].label;
+    }
+    var prev = el('btnProcPrev');
+    var next = el('btnProcNext');
+    if (prev) prev.disabled = (currentPhaseIdx === 0);
+    if (next) next.disabled = (currentPhaseIdx === PROC_PHASES.length - 1);
+  }
+
+  function renderNav() {
+    var nav = el('procNav');
+    if (!nav) return;
+    nav.innerHTML = '';
+    for (var i = 0; i < PROC_PHASES.length; i++) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'proc-nav-btn';
+      if (i === currentPhaseIdx) b.className += ' active';
+      if (draft[PROC_PHASES[i].key] && draft[PROC_PHASES[i].key].trim()) b.className += ' has-text';
+      b.textContent = (i + 1) + '. ' + PROC_PHASES[i].label;
+      (function(idx){
+        b.addEventListener('click', function(){ gotoPhase(idx); });
+      })(i);
+      nav.appendChild(b);
+    }
+  }
+
+  function handleText(text) {
+    var cmd = detectCommand(text);
+    if (cmd === 'cancel') { close(); return; }
+    if (cmd === 'apply')  { apply(); return; }
+    if (cmd === 'clear')  { clearBuffer(); return; }
+    if (cmd === 'newline'){ insertNewline(); return; }
+    if (cmd === 'next')   { gotoPhase(currentPhaseIdx + 1); return; }
+    if (cmd === 'prev')   { gotoPhase(currentPhaseIdx - 1); return; }
+    if (cmd && cmd.cmd === 'goto') { gotoPhase(cmd.idx); return; }
+    appendText(text);
+  }
+
+  function startListening() {
+    if (!supported || listening) return;
+    try {
+      rec = new Recog();
+      rec.lang = 'es-ES';
+      rec.interimResults = true;
+      rec.continuous = true;
+      rec.onresult = function(ev) {
+        var finalTxt = '', interim = '';
+        for (var i = ev.resultIndex; i < ev.results.length; i++) {
+          var r = ev.results[i];
+          if (r.isFinal) finalTxt += r[0].transcript;
+          else interim += r[0].transcript;
+        }
+        if (finalTxt.trim()) {
+          setLive('<strong>' + escapeHtml(finalTxt.trim()) + '</strong>');
+          handleText(finalTxt.trim());
+        } else if (interim) {
+          setLive('<em>' + escapeHtml(interim) + '</em>');
+        }
+      };
+      rec.onerror = function(ev) {
+        listening = false;
+        setStatus('Error: ' + (ev.error || 'desconocido') + '. Pulsa &laquo;Empezar&raquo; para reintentar.', '');
+        var m = el('btnProcMic'); if (m) m.innerHTML = '&#x1F3A4; Empezar';
+      };
+      rec.onend = function() {
+        if (listening) {
+          try { rec.start(); } catch (_) { listening = false; }
+        } else {
+          setStatus('\u23F8 Parado', '');
+          var m = el('btnProcMic'); if (m) m.innerHTML = '&#x1F3A4; Empezar';
+        }
+      };
+      rec.start();
+      listening = true;
+      setStatus('\u25CF Escuchando\u2026', 'listening');
+      el('btnProcMic').innerHTML = '\u23F9 Parar';
+    } catch (e) {
+      setStatus('No se pudo iniciar: ' + e.message, '');
+    }
+  }
+
+  function stopListening() {
+    listening = false;
+    if (rec) { try { rec.stop(); } catch (_) {} rec = null; }
+    setStatus('\u23F8 Parado', '');
+    var m = el('btnProcMic'); if (m) m.innerHTML = '&#x1F3A4; Empezar';
+  }
+
+  function toggleMic() {
+    if (listening) stopListening(); else startListening();
+  }
+
+  function open() {
+    if (!supported) {
+      toast('Dictado no soportado en este navegador', 'error');
+      return;
+    }
+    // Cargamos el contenido actual del formulario al draft del modal
+    draft = normalizeProc(readProcFromForm());
+    currentPhaseIdx = 0;
+    el('modalProc').classList.add('show');
+    loadPhaseToTa();
+    setLive('');
+    setStatus('Pulsa &laquo;Empezar&raquo; para comenzar', '');
+  }
+
+  function close() {
+    stopListening();
+    el('modalProc').classList.remove('show');
+  }
+
+  function apply() {
+    saveDraftFromTa();
+    writeProcToForm(draft);
+    close();
+    toast('Procedimiento aplicado', 'success');
+  }
+
+  function init() {
+    if (!supported) return;
+    var btn = el('btnProcVoice');
+    if (!btn) return;
+    btn.hidden = false;
+    btn.addEventListener('click', open);
+    el('btnProcCancel').addEventListener('click', close);
+    el('btnProcMic').addEventListener('click', toggleMic);
+    el('btnProcClear').addEventListener('click', clearBuffer);
+    el('btnProcApply').addEventListener('click', apply);
+    el('btnProcPrev').addEventListener('click', function(){ gotoPhase(currentPhaseIdx - 1); });
+    el('btnProcNext').addEventListener('click', function(){ gotoPhase(currentPhaseIdx + 1); });
+    // sincronizar draft si el usuario edita el textarea manualmente
+    var ta = el('procDictated');
+    if (ta) ta.addEventListener('input', saveDraftFromTa);
+    attachProcPhaseListeners();
+  }
+
+  return {
+    init: init,
+    supported: supported,
+    _test: {
+      detectCommand: detectCommand,
+      handleText: handleText,
+      appendText: appendText,
+      clearBuffer: clearBuffer,
+      insertNewline: insertNewline,
+      open: open,
+      close: close,
+      apply: apply,
+      gotoPhase: gotoPhase,
+      getCurrentPhaseIdx: function(){ return currentPhaseIdx; },
+      getDraft: function(){ return draft; },
+      setDraft: function(v){ draft = normalizeProc(v); loadPhaseToTa(); },
+      isListening: function() { return listening; },
+      getBuffer: function() { var t = el('procDictated'); return t ? t.value : ''; },
+      setBuffer: function(v) { var t = el('procDictated'); if (t) t.value = v; saveDraftFromTa(); }
+    }
+  };
+})();
+
+/* ========== API SETTINGS (Anthropic) ========== */
+var ApiSettings = (function() {
+  var KEY_STORAGE = 'obrador_AI_KEY';
+  var MODEL_STORAGE = 'obrador_AI_MODEL';
+  var DEFAULT_MODEL = 'claude-haiku-4-5-20251001';
+
+  function getKey() {
+    try { return localStorage.getItem(KEY_STORAGE) || ''; } catch(e) { return ''; }
+  }
+  function getModel() {
+    try { return localStorage.getItem(MODEL_STORAGE) || DEFAULT_MODEL; } catch(e) { return DEFAULT_MODEL; }
+  }
+  function setKey(k) {
+    try { localStorage.setItem(KEY_STORAGE, k || ''); return true; } catch(e) { return false; }
+  }
+  function setModel(m) {
+    try { localStorage.setItem(MODEL_STORAGE, m || DEFAULT_MODEL); return true; } catch(e) { return false; }
+  }
+  function clearKey() {
+    try { localStorage.removeItem(KEY_STORAGE); return true; } catch(e) { return false; }
+  }
+  function hasKey() { return !!getKey().trim(); }
+
+  function openModal() {
+    document.getElementById('inpApiKey').value = getKey();
+    document.getElementById('inpApiModel').value = getModel();
+    document.getElementById('modalSettings').classList.add('show');
+    setTimeout(function(){ document.getElementById('inpApiKey').focus(); }, 50);
+  }
+  function closeModal() {
+    document.getElementById('modalSettings').classList.remove('show');
+  }
+  function saveFromModal() {
+    var k = document.getElementById('inpApiKey').value.trim();
+    var m = document.getElementById('inpApiModel').value.trim();
+    setKey(k);
+    setModel(m);
+    closeModal();
+    toast(k ? 'Ajustes guardados' : 'Key borrada', 'success');
+  }
+  function clearFromModal() {
+    if (!confirm('\u00bfBorrar la API key guardada?')) return;
+    document.getElementById('inpApiKey').value = '';
+    clearKey();
+    toast('API key borrada', 'success');
+  }
+
+  function init() {
+    var b = document.getElementById('btnSettings');
+    if (b) b.addEventListener('click', openModal);
+    var save = document.getElementById('btnSettingsSave');
+    if (save) save.addEventListener('click', saveFromModal);
+    var clr = document.getElementById('btnSettingsClear');
+    if (clr) clr.addEventListener('click', clearFromModal);
+  }
+
+  return {
+    init: init,
+    getKey: getKey,
+    getModel: getModel,
+    hasKey: hasKey,
+    openModal: openModal,
+    _test: {
+      setKey: setKey, setModel: setModel, clearKey: clearKey,
+      getKey: getKey, getModel: getModel
+    }
+  };
+})();
+
+/* ========== OCR DE IMAGEN (Claude Vision) ========== */
+var ImageOCR = (function() {
+  var MAX_SIDE = 1600;
+  var JPEG_QUALITY = 0.85;
+  var API_URL = 'https://api.anthropic.com/v1/messages';
+  var ANTHROPIC_VERSION = '2023-06-01';
+  var currentController = null;
+  var currentMode = 'full'; // 'full' | 'proc'
+
+  /* Redimensiona y re-comprime a JPEG. Devuelve { base64, mediaType, width, height }. */
+  function resizeImage(file) {
+    return new Promise(function(resolve, reject) {
+      var reader = new FileReader();
+      reader.onerror = function(){ reject(new Error('No se pudo leer el archivo')); };
+      reader.onload = function(ev) {
+        var img = new Image();
+        img.onload = function() {
+          var w = img.width, h = img.height;
+          var scale = Math.min(1, MAX_SIDE / Math.max(w, h));
+          var nw = Math.round(w * scale), nh = Math.round(h * scale);
+          var cv = document.createElement('canvas');
+          cv.width = nw; cv.height = nh;
+          var ctx = cv.getContext('2d');
+          ctx.drawImage(img, 0, 0, nw, nh);
+          var dataUrl = cv.toDataURL('image/jpeg', JPEG_QUALITY);
+          var b64 = dataUrl.split(',')[1] || '';
+          resolve({ base64: b64, mediaType: 'image/jpeg', width: nw, height: nh });
+        };
+        img.onerror = function(){ reject(new Error('Imagen inv\u00e1lida')); };
+        img.src = ev.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function promptFullRecipe() {
+    return 'Analiza esta imagen de una receta de panader\u00eda escrita en espa\u00f1ol.\n' +
+      'Devuelve \u00daNICAMENTE un JSON v\u00e1lido con esta estructura exacta, sin texto adicional ni bloques de c\u00f3digo:\n' +
+      '{\n' +
+      '  "nombre": "string (nombre de la receta)",\n' +
+      '  "harinas": [ { "nombre": "string", "cantidad": number, "unidad": "pct"|"g"|"kg" } ],\n' +
+      '  "otros":   [ { "nombre": "string", "cantidad": number, "unidad": "pct"|"g"|"kg" } ],\n' +
+      '  "produccion": [ { "formato": "string", "unidades": number, "pesoGramos": number } ],\n' +
+      '  "proc": {\n' +
+      '    "amasado": "string",\n' +
+      '    "proceso": "string",\n' +
+      '    "fermentacion": "string",\n' +
+      '    "coccion": "string",\n' +
+      '    "finalizacion": "string"\n' +
+      '  }\n' +
+      '}\n\n' +
+      'Reglas:\n' +
+      '- NO inventes. Si un campo no aparece en la imagen, deja string vac\u00edo, array vac\u00edo o number 0.\n' +
+      '- Las harinas son los ingredientes base (trigo, centeno, espelta, etc.). "Otros" incluye agua, sal, levadura, masa madre, az\u00facar, grasas, semillas.\n' +
+      '- Detecta la unidad: si la receta est\u00e1 en porcentaje panadero ("70%", "2%"), usa "pct". Si hay gramos/kilos, usa "g" o "kg".\n' +
+      '- En "proc", clasifica el procedimiento en 5 fases (amasado, proceso/boleado/formado, fermentaci\u00f3n, cocci\u00f3n, finalizaci\u00f3n/enfriado). Si la receta solo tiene prosa sin fases claras, pon todo en "amasado" o donde mejor encaje.\n' +
+      '- Usa punto como separador decimal en los n\u00fameros del JSON.\n' +
+      '- Responde SOLO con el JSON.';
+  }
+
+  function promptProcOnly() {
+    return 'Analiza esta imagen. Contiene el procedimiento de elaboraci\u00f3n de una receta de panader\u00eda en espa\u00f1ol.\n' +
+      'Devuelve \u00daNICAMENTE un JSON v\u00e1lido con esta estructura, sin texto adicional ni bloques de c\u00f3digo:\n' +
+      '{\n' +
+      '  "amasado": "string",\n' +
+      '  "proceso": "string",\n' +
+      '  "fermentacion": "string",\n' +
+      '  "coccion": "string",\n' +
+      '  "finalizacion": "string"\n' +
+      '}\n\n' +
+      'Reglas:\n' +
+      '- NO inventes. Si una fase no aparece, deja string vac\u00edo.\n' +
+      '- "proceso" incluye boleado, divisi\u00f3n, formado, reposo intermedio.\n' +
+      '- "finalizaci\u00f3n" incluye enfriado, glaseado, conservaci\u00f3n.\n' +
+      '- Si el texto es prosa sin fases claras, agrupa por sentido.\n' +
+      '- Responde SOLO con el JSON.';
+  }
+
+  function callClaude(imageB64, mediaType, mode) {
+    var key = ApiSettings.getKey();
+    if (!key) throw new Error('Falta la API key. Abre Ajustes y pega tu clave.');
+    var model = ApiSettings.getModel();
+    var prompt = mode === 'proc' ? promptProcOnly() : promptFullRecipe();
+    currentController = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+    return fetch(API_URL, {
+      method: 'POST',
+      signal: currentController ? currentController.signal : undefined,
+      headers: {
+        'content-type': 'application/json',
+        'anthropic-version': ANTHROPIC_VERSION,
+        'x-api-key': key,
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: model,
+        max_tokens: 2000,
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'image', source: { type: 'base64', media_type: mediaType, data: imageB64 } },
+            { type: 'text', text: prompt }
+          ]
+        }]
+      })
+    }).then(function(resp) {
+      return resp.text().then(function(txt) {
+        if (!resp.ok) {
+          var msg = 'Error ' + resp.status;
+          try { var j = JSON.parse(txt); if (j && j.error && j.error.message) msg += ': ' + j.error.message; }
+          catch(_){ msg += ': ' + txt.slice(0, 200); }
+          throw new Error(msg);
+        }
+        var json = JSON.parse(txt);
+        var text = '';
+        if (json.content && json.content.length) {
+          for (var i = 0; i < json.content.length; i++) {
+            if (json.content[i].type === 'text') text += json.content[i].text;
+          }
+        }
+        return text;
+      });
+    });
+  }
+
+  /* Extrae JSON de la respuesta, aunque venga envuelta en bloque ```json */
+  function extractJson(txt) {
+    if (!txt) return null;
+    var s = String(txt).trim();
+    // quita bloque ```json ... ```
+    s = s.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '').trim();
+    // primer { hasta el último }
+    var first = s.indexOf('{');
+    var last = s.lastIndexOf('}');
+    if (first < 0 || last < 0 || last < first) return null;
+    s = s.slice(first, last + 1);
+    try { return JSON.parse(s); } catch (e) { return null; }
+  }
+
+  function unitToGrams(cantidad, unidad, baseFlourG) {
+    cantidad = Number(cantidad) || 0;
+    if (cantidad <= 0) return 0;
+    if (unidad === 'kg') return cantidad * 1000;
+    if (unidad === 'g') return cantidad;
+    // pct -> base de harina
+    return cantidad * (baseFlourG || 1000) / 100;
+  }
+
+  /* Convierte el JSON genérico al modelo interno. Normaliza unidades a gramos. */
+  function jsonToRecipeModel(data) {
+    data = data || {};
+    var harinasIn = Array.isArray(data.harinas) ? data.harinas : [];
+    var otrosIn   = Array.isArray(data.otros)   ? data.otros   : [];
+    var prodsIn   = Array.isArray(data.produccion) ? data.produccion : [];
+
+    // Determinar base de harina
+    var sumFlourG = 0, hasPct = false;
+    harinasIn.forEach(function(h){
+      if (h.unidad === 'g') sumFlourG += Number(h.cantidad) || 0;
+      else if (h.unidad === 'kg') sumFlourG += (Number(h.cantidad) || 0) * 1000;
+      else if (h.unidad === 'pct') hasPct = true;
+    });
+    var baseFlour = sumFlourG > 0 ? sumFlourG : 1000;
+
+    var harinas = harinasIn.map(function(h){
+      return {
+        n: String(h.nombre || '').trim(),
+        g: Math.round(unitToGrams(h.cantidad, h.unidad, baseFlour) * 100) / 100,
+        pref: false
+      };
+    }).filter(function(h){ return h.n; });
+
+    var otros = otrosIn.map(function(o){
+      return {
+        n: String(o.nombre || '').trim(),
+        g: Math.round(unitToGrams(o.cantidad, o.unidad, baseFlour) * 100) / 100,
+        pref: false
+      };
+    }).filter(function(o){ return o.n; });
+
+    var prods = prodsIn.map(function(p){
+      return {
+        fmt: String(p.formato || '').trim() || 'Pieza',
+        c: Number(p.unidades) || 0,
+        p: Number(p.pesoGramos) || 0
+      };
+    }).filter(function(p){ return p.c > 0 || p.p > 0; });
+
+    var proc = normalizeProc(data.proc);
+    return {
+      nombre: String(data.nombre || '').trim(),
+      harinas: harinas,
+      otros: otros,
+      prods: prods,
+      proc: proc
+    };
+  }
+
+  function setProgress(msg) {
+    var s = document.getElementById('ocrProgressStatus');
+    if (s) s.textContent = msg;
+  }
+  function showProgress() { document.getElementById('modalOcrProgress').classList.add('show'); }
+  function hideProgress() { document.getElementById('modalOcrProgress').classList.remove('show'); }
+  function showReview(data, mode) {
+    currentMode = mode;
+    var ta = document.getElementById('ocrReviewJson');
+    if (ta) ta.value = JSON.stringify(data, null, 2);
+    renderReviewPreview(data, mode);
+    var err = document.getElementById('ocrReviewError');
+    if (err) err.style.display = 'none';
+    document.getElementById('modalOcrReview').classList.add('show');
+  }
+  function hideReview() { document.getElementById('modalOcrReview').classList.remove('show'); }
+
+  function renderReviewPreview(data, mode) {
+    var box = document.getElementById('ocrReviewPreview');
+    if (!box) return;
+    data = data || {};
+    var html = '';
+    if (mode === 'proc') {
+      var norm = normalizeProc(data);
+      var phasesWithText = 0;
+      html += '<h5>Procedimiento detectado</h5><ul>';
+      for (var i = 0; i < PROC_PHASES.length; i++) {
+        var k = PROC_PHASES[i].key;
+        var t = (norm[k] || '').trim();
+        if (t) {
+          phasesWithText++;
+          html += '<li><b>' + escapeHtml(PROC_PHASES[i].label) + ':</b> ' + escapeHtml(t.slice(0, 80)) + (t.length > 80 ? '\u2026' : '') + '</li>';
+        }
+      }
+      html += '</ul><div style="color:var(--text-faint); font-size:0.8rem;">' + phasesWithText + ' fases con contenido</div>';
+    } else {
+      html += '<h5>' + escapeHtml(data.nombre || '(sin nombre)') + '</h5>';
+      html += '<div style="font-size:0.8rem; color:var(--text-faint);">';
+      html += (data.harinas ? data.harinas.length : 0) + ' harinas \u00b7 ';
+      html += (data.otros ? data.otros.length : 0) + ' otros \u00b7 ';
+      html += (data.produccion ? data.produccion.length : 0) + ' formatos';
+      html += '</div>';
+    }
+    box.innerHTML = html;
+  }
+
+  function validateReviewJson() {
+    var ta = document.getElementById('ocrReviewJson');
+    var err = document.getElementById('ocrReviewError');
+    try {
+      var data = JSON.parse(ta.value);
+      renderReviewPreview(data, currentMode);
+      err.style.display = 'none';
+      toast('JSON v\u00e1lido', 'success');
+      return data;
+    } catch (e) {
+      err.textContent = 'JSON inv\u00e1lido: ' + e.message;
+      err.style.display = '';
+      return null;
+    }
+  }
+
+  function applyReviewToForm() {
+    var data = validateReviewJson();
+    if (!data) return;
+    if (currentMode === 'proc') {
+      writeProcToForm(data);
+      toast('Procedimiento aplicado. Revisa y guarda.', 'success');
+    } else {
+      var model = jsonToRecipeModel(data);
+      // rellenamos formulario (parecido a loadRecipeByName pero desde model parseado)
+      document.getElementById('nomReceta').value = model.nombre || '';
+      document.getElementById('selRecetas').value = '';
+      writeProcToForm(model.proc);
+      document.querySelector('#tHarinas tbody').innerHTML = '';
+      document.querySelector('#tOtros tbody').innerHTML = '';
+      document.querySelector('#tProd tbody').innerHTML = '';
+      if (model.harinas.length) model.harinas.forEach(function(h){ addIngredientRow('tHarinas', h); });
+      else addIngredientRow('tHarinas');
+      if (model.otros.length) model.otros.forEach(function(o){ addIngredientRow('tOtros', o); });
+      else addIngredientRow('tOtros');
+      if (model.prods.length) model.prods.forEach(function(p){ addProdRow(p); });
+      else addProdRow();
+      calc();
+      toast('Receta aplicada. Revisa y guarda.', 'success');
+    }
+    hideReview();
+  }
+
+  function processFile(file, mode) {
+    if (!ApiSettings.hasKey()) {
+      toast('Falta API key. Abre Ajustes.', 'warn');
+      ApiSettings.openModal();
+      return;
+    }
+    if (!file) return;
+    if (!/^image\//.test(file.type)) {
+      toast('Selecciona un archivo de imagen', 'error');
+      return;
+    }
+    if (file.size > 25 * 1024 * 1024) {
+      toast('Imagen demasiado grande (>25 MB)', 'error');
+      return;
+    }
+    showProgress();
+    setProgress('Preparando imagen\u2026');
+    resizeImage(file).then(function(img){
+      setProgress('Enviando a Claude\u2026');
+      return callClaude(img.base64, img.mediaType, mode);
+    }).then(function(text){
+      setProgress('Procesando respuesta\u2026');
+      var json = extractJson(text);
+      hideProgress();
+      if (!json) {
+        toast('No se pudo extraer JSON. Abriendo editor.', 'warn');
+        // abrimos review con texto tal cual, para que corrijas
+        var ta = document.getElementById('ocrReviewJson');
+        if (ta) ta.value = text;
+        currentMode = mode;
+        document.getElementById('modalOcrReview').classList.add('show');
+        return;
+      }
+      showReview(json, mode);
+    }).catch(function(err){
+      hideProgress();
+      if (err && err.name === 'AbortError') { toast('Cancelado', 'info'); return; }
+      toast('Error: ' + (err.message || err), 'error');
+    });
+  }
+
+  function cancelCurrent() {
+    if (currentController) { try { currentController.abort(); } catch(_){} }
+    hideProgress();
+  }
+
+  function init() {
+    var bR = document.getElementById('btnOcrRecipe');
+    var bP = document.getElementById('btnOcrProc');
+    var fR = document.getElementById('fileOcrFull');
+    var fP = document.getElementById('fileOcrProc');
+    if (bR && fR) {
+      bR.addEventListener('click', function(){ fR.click(); });
+      fR.addEventListener('change', function(ev){
+        var f = ev.target.files && ev.target.files[0];
+        if (f) processFile(f, 'full');
+        ev.target.value = '';
+      });
+    }
+    if (bP && fP) {
+      bP.addEventListener('click', function(){ fP.click(); });
+      fP.addEventListener('change', function(ev){
+        var f = ev.target.files && ev.target.files[0];
+        if (f) processFile(f, 'proc');
+        ev.target.value = '';
+      });
+    }
+    var cancelBtn = document.getElementById('btnOcrProgressCancel');
+    if (cancelBtn) cancelBtn.addEventListener('click', cancelCurrent);
+    var validateBtn = document.getElementById('btnOcrReviewValidate');
+    if (validateBtn) validateBtn.addEventListener('click', validateReviewJson);
+    var applyBtn = document.getElementById('btnOcrReviewApply');
+    if (applyBtn) applyBtn.addEventListener('click', applyReviewToForm);
+  }
+
+  return {
+    init: init,
+    processFile: processFile,
+    _test: {
+      extractJson: extractJson,
+      jsonToRecipeModel: jsonToRecipeModel,
+      unitToGrams: unitToGrams,
+      promptFullRecipe: promptFullRecipe,
+      promptProcOnly: promptProcOnly,
+      showReview: showReview,
+      applyReviewToForm: applyReviewToForm
+    }
+  };
+})();
+
+/* ========== INIT ========== */
+function init() {
+  // Tema
+  var savedTheme = null;
+  try { savedTheme = localStorage.getItem(THEME_KEY); } catch (e) {}
+  if (!savedTheme && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    savedTheme = 'dark';
+  }
+  applyTheme(savedTheme === 'dark' ? 'dark' : 'light');
+
+  loadStorage();
+  renderRecipeSelect();
+  renderCola();
+  document.getElementById('fecha').value = tomorrowISO();
+
+  // Semillas iniciales si no hay filas
+  if (document.querySelector('#tHarinas tbody').children.length === 0) {
+    addIngredientRow('tHarinas', { n: 'Harina Trigo', g: 1000, c: 0.6 });
+    addIngredientRow('tOtros', { n: 'Agua', g: 600, c: 0 });
+    addIngredientRow('tOtros', { n: 'Sal', g: 20, c: 0.8 });
+    addProdRow({ fmt: 'Barra', c: 50, p: 250 });
+  }
+
+  setupEvents();
+  VoiceRecipe.init();
+  ProcedureVoice.init();
+  ApiSettings.init();
+  ImageOCR.init();
+  updateWaterTemp();
+  calc();
+
+  // Tests en consola
+  runSelfTests();
+
+  // Modo test visible ?test=1
+  if (window.location.search.indexOf('test=1') !== -1) {
+    var res = runSelfTests();
+    toast('Tests: ' + res.passed + ' OK / ' + res.failed + ' KO', res.failed === 0 ? 'success' : 'error');
+  }
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
+</script>
+</body>
+</html>
