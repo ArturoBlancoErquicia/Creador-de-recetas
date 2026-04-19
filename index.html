@@ -1011,13 +1011,16 @@ td { padding: 4px 2px; vertical-align: middle; }
       Para extraer recetas de im&aacute;genes se usa la API de <b>Claude (Anthropic)</b>.
       La clave se guarda en tu navegador (localStorage), solo t&uacute; la ves.
     </div>
+    <div class="voice-instruction" style="background:#fff3cd; color:#664d03; border-left:3px solid #d39e00;">
+      &#x26A0;&#xFE0F; <b>Aviso:</b> la clave viaja en peticiones desde tu navegador. No uses este equipo en redes p&uacute;blicas con la key activa, y <b>l&iacute;mita el gasto</b> en <span style="font-family:monospace;">console.anthropic.com</span>. Revoca la key si el equipo se comparte.
+    </div>
     <label for="inpApiKey">Anthropic API key</label>
     <input type="password" id="inpApiKey" placeholder="sk-ant-&hellip;" autocomplete="off" spellcheck="false">
     <label for="inpApiModel" style="margin-top:10px;">Modelo</label>
     <select id="inpApiModel">
       <option value="claude-haiku-4-5-20251001">Claude Haiku 4.5 (r&aacute;pido y barato)</option>
       <option value="claude-sonnet-4-6">Claude Sonnet 4.6 (mejor calidad)</option>
-      <option value="claude-opus-4-6">Claude Opus 4.6 (m&aacute;xima calidad)</option>
+      <option value="claude-opus-4-7">Claude Opus 4.7 (m&aacute;xima calidad)</option>
     </select>
     <div class="hint" style="margin-top: 10px;">
       Obt&eacute;n tu key en <span style="font-family: monospace;">console.anthropic.com</span>.
@@ -1271,6 +1274,81 @@ function attachDrag(tr) {
     tr.parentNode.insertBefore(dragSource, tr);
     tr.classList.remove('drag-over');
   });
+  attachTouchDrag(tr);
+}
+
+/* Soporte t\u00e1ctil para reordenar filas en m\u00f3vil.
+   Activa el modo arrastre con long-press (400 ms) para no interferir con taps en inputs.
+   Cada fila tiene su propio timer y estado (scope cerrado) para que dos toques
+   en filas distintas no se pisen. Si el dedo se mueve >8 px antes del long-press,
+   cancela el timer para no bloquear el scroll. */
+var TOUCH_LP_MS = 400;
+var TOUCH_MOVE_CANCEL_PX = 8;
+function attachTouchDrag(tr) {
+  var timer = null;
+  var dragging = false;
+  var startX = 0, startY = 0;
+
+  function cancelTimer() {
+    if (timer) { clearTimeout(timer); timer = null; }
+  }
+
+  tr.addEventListener('touchstart', function(e) {
+    var target = e.target;
+    if (target && target.closest && target.closest('input, button, select, textarea, label')) return;
+    var t = e.touches[0];
+    if (!t) return;
+    startX = t.clientX; startY = t.clientY;
+    cancelTimer();
+    timer = setTimeout(function() {
+      timer = null;
+      dragging = true;
+      dragSource = tr;
+      tr.classList.add('dragging');
+      if (navigator.vibrate) { try { navigator.vibrate(30); } catch(_){} }
+    }, TOUCH_LP_MS);
+  }, { passive: true });
+
+  tr.addEventListener('touchmove', function(e) {
+    var t = e.touches[0];
+    if (!t) return;
+    if (!dragging) {
+      // Si el usuario se mueve antes del long-press, es scroll: cancela.
+      var dx = Math.abs(t.clientX - startX);
+      var dy = Math.abs(t.clientY - startY);
+      if (dx > TOUCH_MOVE_CANCEL_PX || dy > TOUCH_MOVE_CANCEL_PX) cancelTimer();
+      return;
+    }
+    e.preventDefault();
+    var el = document.elementFromPoint(t.clientX, t.clientY);
+    var overTr = el && el.closest ? el.closest('tr.row-drag') : null;
+    var siblings = tr.parentNode.querySelectorAll('.drag-over');
+    for (var i = 0; i < siblings.length; i++) siblings[i].classList.remove('drag-over');
+    if (overTr && overTr !== tr && overTr.parentNode === tr.parentNode) {
+      overTr.classList.add('drag-over');
+    }
+  }, { passive: false });
+
+  function endTouch(e) {
+    cancelTimer();
+    if (!dragging) return;
+    dragging = false;
+    var t = (e.changedTouches && e.changedTouches[0]) || null;
+    if (t) {
+      var el = document.elementFromPoint(t.clientX, t.clientY);
+      var overTr = el && el.closest ? el.closest('tr.row-drag') : null;
+      if (overTr && overTr !== tr && overTr.parentNode === tr.parentNode) {
+        overTr.parentNode.insertBefore(tr, overTr);
+      }
+    }
+    tr.classList.remove('dragging');
+    var all = document.querySelectorAll('.row-drag.drag-over');
+    for (var i = 0; i < all.length; i++) all[i].classList.remove('drag-over');
+    dragSource = null;
+    scheduleCalc();
+  }
+  tr.addEventListener('touchend', endTouch);
+  tr.addEventListener('touchcancel', endTouch);
 }
 
 /* ========== LECTURA DE FILAS ========== */
@@ -3130,12 +3208,29 @@ var ImageOCR = (function() {
       '- Responde SOLO con el JSON.';
   }
 
+  /* Mapea un error HTTP/Anthropic a un mensaje accionable en espa\u00f1ol. */
+  function friendlyError(status, body) {
+    var base = body && body.error && body.error.message ? body.error.message : '';
+    if (status === 401) return 'API key inv\u00e1lida. Revisa la clave en Ajustes.';
+    if (status === 403) return 'Acceso denegado. La key puede estar revocada o restringida.';
+    if (status === 404) return 'Modelo no encontrado. Cambia el modelo en Ajustes.';
+    if (status === 413) return 'Imagen demasiado grande para el modelo. Haz una foto con menos resoluci\u00f3n.';
+    if (status === 429) return 'L\u00edmite de peticiones alcanzado. Espera unos segundos y vuelve a intentarlo.';
+    if (status === 529) return 'Servicio sobrecargado. Reintenta en unos segundos.';
+    if (status >= 500) return 'Error del servicio de Claude (' + status + '). Reintenta en unos segundos.';
+    return 'Error ' + status + (base ? ': ' + base : '');
+  }
+
   function callClaude(imageB64, mediaType, mode) {
     var key = ApiSettings.getKey();
     if (!key) throw new Error('Falta la API key. Abre Ajustes y pega tu clave.');
     var model = ApiSettings.getModel();
     var prompt = mode === 'proc' ? promptProcOnly() : promptFullRecipe();
     currentController = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+    // El prompt es est\u00e1tico por modo: lo ponemos como system con cache_control
+    // para que la API reaproveche el cach\u00e9 entre llamadas consecutivas del mismo modo.
+    // Nota: Anthropic tiene un m\u00ednimo de tokens para cachear (1024 Sonnet/Opus, 2048 Haiku);
+    // si no se alcanza, la API simplemente ignora cache_control sin penalizaci\u00f3n.
     return fetch(API_URL, {
       method: 'POST',
       signal: currentController ? currentController.signal : undefined,
@@ -3148,46 +3243,150 @@ var ImageOCR = (function() {
       body: JSON.stringify({
         model: model,
         max_tokens: 2000,
+        system: [
+          { type: 'text', text: prompt, cache_control: { type: 'ephemeral' } }
+        ],
         messages: [{
           role: 'user',
           content: [
             { type: 'image', source: { type: 'base64', media_type: mediaType, data: imageB64 } },
-            { type: 'text', text: prompt }
+            { type: 'text', text: 'Analiza la imagen y responde SOLO con el JSON indicado en las instrucciones.' }
           ]
         }]
       })
     }).then(function(resp) {
       return resp.text().then(function(txt) {
         if (!resp.ok) {
-          var msg = 'Error ' + resp.status;
-          try { var j = JSON.parse(txt); if (j && j.error && j.error.message) msg += ': ' + j.error.message; }
-          catch(_){ msg += ': ' + txt.slice(0, 200); }
-          throw new Error(msg);
+          var body = null;
+          try { body = JSON.parse(txt); } catch(_){}
+          throw new Error(friendlyError(resp.status, body));
         }
-        var json = JSON.parse(txt);
+        var json;
+        try { json = JSON.parse(txt); }
+        catch (_) { throw new Error('Respuesta no v\u00e1lida del servidor'); }
         var text = '';
         if (json.content && json.content.length) {
           for (var i = 0; i < json.content.length; i++) {
             if (json.content[i].type === 'text') text += json.content[i].text;
           }
         }
+        if (!text) throw new Error('Claude no devolvi\u00f3 texto. Prueba con otro modelo o imagen.');
         return text;
       });
     });
   }
 
-  /* Extrae JSON de la respuesta, aunque venga envuelta en bloque ```json */
+  // Extrae JSON de la respuesta de Claude, tolerante a: texto conversacional
+  // antes/despu\u00e9s, bloques markdown triple-backtick (con o sin 'json'),
+  // m\u00faltiples bloques (devuelve el primero que parsee), comas finales,
+  // comillas smart unicode, comentarios de l\u00ednea y de bloque, y top-level
+  // tanto objeto como array.
   function extractJson(txt) {
-    if (!txt) return null;
-    var s = String(txt).trim();
-    // quita bloque ```json ... ```
-    s = s.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '').trim();
-    // primer { hasta el último }
-    var first = s.indexOf('{');
-    var last = s.lastIndexOf('}');
-    if (first < 0 || last < 0 || last < first) return null;
-    s = s.slice(first, last + 1);
-    try { return JSON.parse(s); } catch (e) { return null; }
+    if (txt == null) return null;
+    var raw = String(txt);
+    if (!raw.trim()) return null;
+
+    var candidates = [];
+    var fenceRe = /```(?:json|JSON)?\s*([\s\S]*?)```/g;
+    var m;
+    while ((m = fenceRe.exec(raw)) !== null) {
+      if (m[1] && m[1].trim()) candidates.push(m[1]);
+    }
+    candidates.push(raw);
+
+    for (var i = 0; i < candidates.length; i++) {
+      var parsed = tryParseLoose(candidates[i], 0);
+      if (parsed !== undefined) return parsed;
+    }
+    return null;
+
+    // Busca un JSON v\u00e1lido desde `fromIdx`. Si el primer chunk balanceado no
+    // es parseable ni siquiera despu\u00e9s de sanear, prueba con el siguiente
+    // `{` o `[` que aparezca m\u00e1s adelante (caso: "Texto {falso} antes. {...} fin").
+    function tryParseLoose(chunk, fromIdx) {
+      if (!chunk) return undefined;
+      var cursor = fromIdx || 0;
+      while (cursor < chunk.length) {
+        var startInfo = findNextJsonStart(chunk, cursor);
+        if (!startInfo) return undefined;
+        var slice = sliceBalanced(chunk, startInfo.index);
+        if (slice) {
+          try { return JSON.parse(slice); } catch (e1) {}
+          var cleaned = sanitize(slice);
+          try { return JSON.parse(cleaned); } catch (e2) {}
+        }
+        cursor = startInfo.index + 1;
+      }
+      return undefined;
+    }
+
+    function findNextJsonStart(s, from) {
+      var o = s.indexOf('{', from);
+      var a = s.indexOf('[', from);
+      if (o < 0 && a < 0) return null;
+      if (o < 0) return { index: a };
+      if (a < 0) return { index: o };
+      return { index: Math.min(o, a) };
+    }
+
+    // Desde start, encuentra el cierre balanceado respetando strings.
+    function sliceBalanced(s, start) {
+      var open = s.charAt(start);
+      var close = open === '{' ? '}' : ']';
+      var depth = 0, inStr = false, quote = '', esc = false;
+      for (var i = start; i < s.length; i++) {
+        var c = s.charAt(i);
+        if (inStr) {
+          if (esc) { esc = false; continue; }
+          if (c === '\\') { esc = true; continue; }
+          if (c === quote) { inStr = false; }
+          continue;
+        }
+        if (c === '"' || c === "'") { inStr = true; quote = c; continue; }
+        if (c === open) depth++;
+        else if (c === close) {
+          depth--;
+          if (depth === 0) return s.slice(start, i + 1);
+        }
+      }
+      return null;
+    }
+
+    // Saneador: quita comentarios, normaliza smart quotes, escapa saltos
+    // de l\u00ednea dentro de strings, convierte ' ' a " ", y elimina trailing commas.
+    function sanitize(s) {
+      s = s.replace(/[\u201C\u201D\u201E\u201F\u2033\u2036]/g, '"')
+           .replace(/[\u2018\u2019\u201A\u201B\u2032\u2035]/g, "'");
+      var out = '', inStr = false, quote = '', esc = false;
+      for (var i = 0; i < s.length; i++) {
+        var c = s.charAt(i), next = s.charAt(i + 1);
+        if (inStr) {
+          if (esc) { out += c; esc = false; continue; }
+          if (c === '\\') { out += c; esc = true; continue; }
+          if (c === quote) { out += '"'; inStr = false; continue; }
+          if (c === '\n') { out += '\\n'; continue; }
+          if (c === '\r') { out += '\\r'; continue; }
+          if (c === '\t') { out += '\\t'; continue; }
+          if (c === '"' && quote === "'") { out += '\\"'; continue; }
+          out += c;
+          continue;
+        }
+        if (c === '/' && next === '/') {
+          while (i < s.length && s.charAt(i) !== '\n') i++;
+          continue;
+        }
+        if (c === '/' && next === '*') {
+          i += 2;
+          while (i < s.length - 1 && !(s.charAt(i) === '*' && s.charAt(i + 1) === '/')) i++;
+          i++;
+          continue;
+        }
+        if (c === '"' || c === "'") { inStr = true; quote = c; out += '"'; continue; }
+        out += c;
+      }
+      out = out.replace(/,(\s*[}\]])/g, '$1');
+      return out;
+    }
   }
 
   function unitToGrams(cantidad, unidad, baseFlourG) {
