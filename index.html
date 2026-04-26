@@ -857,19 +857,9 @@ td { padding: 4px 2px; vertical-align: middle; }
       </table>
       <button type="button" class="btn btn-add" data-action="add-harina">+ A&ntilde;adir Harina</button>
 
-      <label style="margin-top:25px;">Otros Ingredientes</label>
-      <table id="tOtros" aria-label="Otros ingredientes">
-        <colgroup>
-          <col class="c-nom"><col class="c-val"><col class="c-pref"><col class="c-pct"><col class="c-del">
-        </colgroup>
-        <thead>
-          <tr>
-            <th>Ingrediente</th><th>Gramos</th><th title="Preferm.">Pref</th><th>%</th><th></th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-      <button type="button" class="btn btn-add" data-action="add-otro">+ A&ntilde;adir Ingrediente</button>
+      <!-- 6 secciones de categor&iacute;as (L&iacute;quidos, Sal, Fermentos, Grasas, Az&uacute;cares, Otros)
+           generadas por buildCatSections() en init(). Cada secci&oacute;n: label + table#tCat-<key> + bot&oacute;n A&ntilde;adir. -->
+      <div id="catSections"></div>
 
       <div class="metric-row">
         <div class="metric">
@@ -1155,6 +1145,58 @@ var THEME_KEY = 'obrador_THEME';
 var db = {};
 var cola = [];
 
+/* ========== CATEGORÍAS DE INGREDIENTES (no harinas) ========== */
+var CAT_KEYS = ['liquidos', 'sal', 'fermentos', 'grasas', 'azucares', 'otros'];
+var CAT_LABELS = {
+  liquidos:  'Líquidos',
+  sal:       'Sal',
+  fermentos: 'Fermentos',
+  grasas:    'Grasas',
+  azucares:  'Azúcares',
+  otros:     'Otros'
+};
+var CAT_LABEL_SINGULAR = {
+  liquidos:  'Líquido',
+  sal:       'Sal',
+  fermentos: 'Fermento',
+  grasas:    'Grasa',
+  azucares:  'Azúcar',
+  otros:     'Otro'
+};
+function CAT_TABLE_ID(k) { return 'tCat-' + k; }
+
+/* Precedencia (orden importa): fermentos > sal > liquidos > grasas > azucares > otros (default).
+   - "masa madre" se asigna a fermentos antes que a "otros".
+   - "agua salada" cae en sal porque sal va antes que liquidos.
+   - "salvado", "salsa", "salsín" no se confunden con sal (negative lookahead). */
+var CAT_PATTERNS = [
+  { cat: 'fermentos', re: /\b(levadura|masa\s*madre|prefermento|pre-fermento|biga|poolish|sourdough|fermento)\b/i },
+  { cat: 'sal',       re: /\bsal(?!vado|sa|s[ií]n)\b|\bsalt\b/i },
+  { cat: 'liquidos',  re: /\b(agua|water|leche|milk|suero|mosto|cerveza|kefir|yogur|nata|crema)\b/i },
+  { cat: 'grasas',    re: /\b(aceite|oil|mantequilla|butter|manteca|margarina|oliva|girasol|sebo|grasa)\b/i },
+  { cat: 'azucares',  re: /\b(az[uú]car|sugar|miel|honey|melaza|sirope|jarabe|panela|glucosa|fructosa|dextrosa)\b/i }
+];
+
+function classifyIngredient(name) {
+  if (!name) return 'otros';
+  var s = String(name).trim();
+  if (!s) return 'otros';
+  for (var i = 0; i < CAT_PATTERNS.length; i++) {
+    if (CAT_PATTERNS[i].re.test(s)) return CAT_PATTERNS[i].cat;
+  }
+  return 'otros';
+}
+
+/* Idempotente: si item.cat ya es válido lo respeta; si falta o es desconocido,
+   lo deduce del nombre. Mutates + returns the item. */
+function ensureCat(item) {
+  if (!item) return item;
+  if (!item.cat || CAT_KEYS.indexOf(item.cat) < 0) {
+    item.cat = classifyIngredient(item.n);
+  }
+  return item;
+}
+
 function loadStorage() {
   try {
     var raw = localStorage.getItem(DB_KEY);
@@ -1355,17 +1397,79 @@ function attachTouchDrag(tr) {
 function readIngredients(tableId) {
   var rows = [];
   var trs = document.querySelectorAll('#' + tableId + ' tbody tr');
+  // Si el tableId es de una categor&iacute;a (tCat-<key>), todas sus filas llevan esa cat.
+  var catFromTable = null;
+  if (tableId.indexOf('tCat-') === 0) catFromTable = tableId.slice(5);
   for (var i=0;i<trs.length;i++) {
     var tr = trs[i];
     rows.push({
       n: tr.querySelector('.i-n').value,
       g: parseNumber(tr.querySelector('.i-g').value),
       pref: tr.querySelector('.i-pref').checked,
+      cat: catFromTable,
       _tr: tr,
       _isFlour: tableId === 'tHarinas'
     });
   }
   return rows;
+}
+
+/* Lee todas las tablas de categor&iacute;as (L&iacute;quidos, Sal, ...) y devuelve un array
+   plano con cada item etiquetado con su cat. */
+function readAllOtros() {
+  var out = [];
+  for (var i = 0; i < CAT_KEYS.length; i++) {
+    var rows = readIngredients(CAT_TABLE_ID(CAT_KEYS[i]));
+    for (var j = 0; j < rows.length; j++) out.push(rows[j]);
+  }
+  return out;
+}
+
+/* Vac&iacute;a las 6 tbody. */
+function clearAllOtrosTables() {
+  for (var i = 0; i < CAT_KEYS.length; i++) {
+    var tb = document.querySelector('#' + CAT_TABLE_ID(CAT_KEYS[i]) + ' tbody');
+    if (tb) tb.innerHTML = '';
+  }
+}
+
+/* Distribuye un array plano de "otros" en las 6 tablas seg&uacute;n item.cat (auto-clasifica si falta). */
+function distributeToCategories(arr) {
+  if (!arr) return;
+  for (var i = 0; i < arr.length; i++) {
+    var it = arr[i];
+    if (!it) continue;
+    ensureCat(it);
+    var tableId = CAT_TABLE_ID(it.cat);
+    if (!document.querySelector('#' + tableId + ' tbody')) {
+      // categor&iacute;a inv&aacute;lida -> 'otros'
+      tableId = CAT_TABLE_ID('otros');
+    }
+    addIngredientRow(tableId, { n: it.n, g: it.g, pref: it.pref });
+  }
+}
+
+/* Construye las 6 secciones de categor&iacute;as dentro de #catSections. */
+function buildCatSections() {
+  var host = document.getElementById('catSections');
+  if (!host) return;
+  if (host.children.length > 0) return; // idempotente
+  var html = '';
+  for (var i = 0; i < CAT_KEYS.length; i++) {
+    var k = CAT_KEYS[i];
+    var label = CAT_LABELS[k];
+    var sing = CAT_LABEL_SINGULAR[k];
+    var marginTop = i === 0 ? '20px' : '18px';
+    html += ''
+      + '<label style="margin-top:' + marginTop + ';">' + escapeHtml(label) + '</label>'
+      + '<table id="' + CAT_TABLE_ID(k) + '" aria-label="' + escapeHtml(label) + '">'
+      + '<colgroup><col class="c-nom"><col class="c-val"><col class="c-pref"><col class="c-pct"><col class="c-del"></colgroup>'
+      + '<thead><tr><th>Ingrediente</th><th>Gramos</th><th title="Preferm.">Pref</th><th>%</th><th></th></tr></thead>'
+      + '<tbody></tbody>'
+      + '</table>'
+      + '<button type="button" class="btn btn-add" data-action="add-cat-' + k + '">+ A&ntilde;adir ' + escapeHtml(sing) + '</button>';
+  }
+  host.innerHTML = html;
 }
 function readProds() {
   var rows = [];
@@ -1384,7 +1488,7 @@ function readProds() {
 /* ========== CÁLCULO ========== */
 function calc() {
   var harinas = readIngredients('tHarinas');
-  var otros = readIngredients('tOtros');
+  var otros = readAllOtros();
   var prods = readProds();
 
   var totalFlour = 0;
@@ -1400,9 +1504,13 @@ function calc() {
     sumPct += pct;
     var cell = it._tr.querySelector('.c-pct');
     if (cell) cell.textContent = pct.toFixed(1) + '%';
-    var nLower = (it.n || '').toLowerCase();
-    if (!it._isFlour && (nLower.indexOf('agua') !== -1 || nLower.indexOf('leche') !== -1)) waterPct += pct;
-    if (!it._isFlour && /^sal(\s|$|,|\()/i.test(it.n || '')) saltPct += pct;
+    if (!it._isFlour) {
+      // Categoría: usa it.cat si lo lleva (Fase A garantiza que items guardados lo tienen);
+      // si no, deduce por nombre. No mutamos it para no afectar al render.
+      var cat = it.cat || classifyIngredient(it.n);
+      if (cat === 'liquidos') waterPct += pct;
+      else if (cat === 'sal') saltPct += pct;
+    }
   }
 
   var massTotal = 0;
@@ -1448,7 +1556,8 @@ function calc() {
     body.appendChild(tr);
     ingsFinal.push({
       n: it2.n, pct: it2.pct, esH: it2._isFlour,
-      pref: it2.pref, fin: finalG
+      pref: it2.pref, fin: finalG,
+      cat: it2._isFlour ? null : (it2.cat || classifyIngredient(it2.n))
     });
   }
 
@@ -1504,14 +1613,13 @@ function applyScale() {
 /* ========== RESET ========== */
 function resetForm() {
   document.querySelector('#tHarinas tbody').innerHTML = '';
-  document.querySelector('#tOtros tbody').innerHTML = '';
+  clearAllOtrosTables();
   document.querySelector('#tProd tbody').innerHTML = '';
   document.getElementById('nomReceta').value = '';
   document.getElementById('selRecetas').value = '';
   document.getElementById('scaleTarget').value = '';
   clearProcForm();
   addIngredientRow('tHarinas');
-  addIngredientRow('tOtros');
   addProdRow();
   calc();
 }
@@ -1520,7 +1628,7 @@ function resetForm() {
 function collectRecipe() {
   return {
     h: readIngredients('tHarinas').map(function(r){ return { n: r.n, g: r.g, pref: r.pref }; }),
-    o: readIngredients('tOtros').map(function(r){ return { n: r.n, g: r.g, pref: r.pref }; }),
+    o: readAllOtros().map(function(r){ return ensureCat({ n: r.n, g: r.g, pref: r.pref, cat: r.cat }); }),
     prods: readProds(),
     proc: readProcFromForm(),
     modifiedAt: new Date().toISOString()
@@ -1543,10 +1651,10 @@ function loadRecipeByName(name) {
   document.getElementById('nomReceta').value = name;
   writeProcToForm(r.proc);
   document.querySelector('#tHarinas tbody').innerHTML = '';
-  document.querySelector('#tOtros tbody').innerHTML = '';
+  clearAllOtrosTables();
   document.querySelector('#tProd tbody').innerHTML = '';
   (r.h || []).forEach(function(x){ addIngredientRow('tHarinas', x); });
-  (r.o || []).forEach(function(x){ addIngredientRow('tOtros', x); });
+  distributeToCategories(r.o || []);
   if (r.prods && r.prods.length) {
     r.prods.forEach(function(p){ addProdRow(p); });
   } else {
@@ -1612,7 +1720,7 @@ function addToCola() {
     fecha: date,
     raw: {
       h: readIngredients('tHarinas').map(function(r){ return { n: r.n, g: r.g, pref: r.pref }; }),
-      o: readIngredients('tOtros').map(function(r){ return { n: r.n, g: r.g, pref: r.pref }; }),
+      o: readAllOtros().map(function(r){ return ensureCat({ n: r.n, g: r.g, pref: r.pref, cat: r.cat }); }),
       prods: readProds(),
       proc: readProcFromForm()
     },
@@ -1692,10 +1800,10 @@ function editCola(idx) {
   document.getElementById('fecha').value = item.fecha;
   writeProcToForm(item.raw.proc);
   document.querySelector('#tHarinas tbody').innerHTML = '';
-  document.querySelector('#tOtros tbody').innerHTML = '';
+  clearAllOtrosTables();
   document.querySelector('#tProd tbody').innerHTML = '';
   (item.raw.h || []).forEach(function(x){ addIngredientRow('tHarinas', x); });
-  (item.raw.o || []).forEach(function(x){ addIngredientRow('tOtros', x); });
+  distributeToCategories(item.raw.o || []);
   (item.raw.prods || []).forEach(function(p){ addProdRow({ fmt: p.fmt, c: p.c, p: p.p }); });
   if ((item.raw.prods || []).length === 0) addProdRow();
   cola.splice(idx, 1);
@@ -2039,6 +2147,46 @@ function runSelfTests() {
   assert('sheetName corta', sanitizeSheetName('Pan [Centeno]/Trigo*?') === 'Pan CentenoTrigo');
   assert('sheetName max 30', sanitizeSheetName('A'.repeat(60)).length === 30);
 
+  // classifyIngredient: liquidos
+  assert('classify Agua', classifyIngredient('Agua') === 'liquidos');
+  assert('classify Agua templada', classifyIngredient('Agua templada') === 'liquidos');
+  assert('classify Leche', classifyIngredient('Leche entera') === 'liquidos');
+  // sal con precedencia y word-boundary
+  assert('classify Sal', classifyIngredient('Sal') === 'sal');
+  assert('classify SAL FINA', classifyIngredient('SAL FINA') === 'sal');
+  assert('classify Salvado NO sal', classifyIngredient('Salvado de trigo') === 'otros');
+  assert('classify Salsa NO sal', classifyIngredient('Salsa de soja') === 'otros');
+  // fermentos
+  assert('classify Levadura', classifyIngredient('Levadura fresca') === 'fermentos');
+  assert('classify Masa madre', classifyIngredient('Masa madre activa') === 'fermentos');
+  assert('classify Poolish', classifyIngredient('Poolish 100%') === 'fermentos');
+  // grasas
+  assert('classify Aceite', classifyIngredient('Aceite de oliva') === 'grasas');
+  assert('classify Mantequilla', classifyIngredient('Mantequilla') === 'grasas');
+  // azucares
+  assert('classify Azucar', classifyIngredient('Azúcar moreno') === 'azucares');
+  assert('classify Miel', classifyIngredient('Miel de mil flores') === 'azucares');
+  // default otros
+  assert('classify Huevo', classifyIngredient('Huevo') === 'otros');
+  assert('classify Cacao', classifyIngredient('Cacao en polvo') === 'otros');
+  assert('classify vacio', classifyIngredient('') === 'otros');
+  assert('classify null', classifyIngredient(null) === 'otros');
+
+  // ensureCat: respeta cat válido, deduce si falta o es inválido
+  var c1 = ensureCat({ n: 'Agua', g: 600 });
+  assert('ensureCat sin cat -> liquidos', c1.cat === 'liquidos');
+  var c2 = ensureCat({ n: 'Sal', g: 20, cat: 'sal' });
+  assert('ensureCat preserva sal', c2.cat === 'sal');
+  var c3 = ensureCat({ n: 'X', g: 10, cat: 'fakecat' });
+  assert('ensureCat invalida -> otros', c3.cat === 'otros');
+
+  // Round-trip de datos viejos: receta sin cat se carga, ensureCat la deduce
+  var oldRecipe = { o: [{ n: 'Agua', g: 600 }, { n: 'Sal', g: 20 }, { n: 'Levadura', g: 5 }] };
+  oldRecipe.o.forEach(ensureCat);
+  assert('roundtrip Agua->liquidos', oldRecipe.o[0].cat === 'liquidos');
+  assert('roundtrip Sal->sal', oldRecipe.o[1].cat === 'sal');
+  assert('roundtrip Levadura->fermentos', oldRecipe.o[2].cat === 'fermentos');
+
   var passed = tests.filter(function(t){ return t.ok; }).length;
   var failed = tests.filter(function(t){ return !t.ok; });
   if (failed.length === 0) {
@@ -2086,7 +2234,10 @@ function setupEvents() {
     if (!t) return;
     var a = t.getAttribute('data-action');
     if (a === 'add-harina') addIngredientRow('tHarinas');
-    else if (a === 'add-otro') addIngredientRow('tOtros');
+    else if (a.indexOf('add-cat-') === 0) {
+      var k = a.slice(8);
+      if (k && CAT_KEYS.indexOf(k) >= 0) addIngredientRow(CAT_TABLE_ID(k));
+    }
     else if (a === 'add-prod') addProdRow();
     else if (a === 'rm-row') { t.closest('tr').remove(); calc(); }
     else if (a === 'rm-cola') removeFromCola(parseInt(t.getAttribute('data-idx'), 10));
@@ -2664,14 +2815,13 @@ var VoiceRecipe = (function() {
   function apply() {
     var norm = normalizeToGrams();
     document.querySelector('#tHarinas tbody').innerHTML = '';
-    document.querySelector('#tOtros tbody').innerHTML = '';
+    clearAllOtrosTables();
     document.querySelector('#tProd tbody').innerHTML = '';
     document.getElementById('nomReceta').value = draft.nombre || '';
     document.getElementById('selRecetas').value = '';
     if (norm.harinas.length) norm.harinas.forEach(function(h){ addIngredientRow('tHarinas', h); });
     else addIngredientRow('tHarinas');
-    if (norm.otros.length) norm.otros.forEach(function(o){ addIngredientRow('tOtros', o); });
-    else addIngredientRow('tOtros');
+    distributeToCategories((norm.otros || []).map(function(o){ ensureCat(o); return o; }));
     if (draft.prods.length) draft.prods.forEach(function(p){ addProdRow(p); });
     else addProdRow();
     calc();
@@ -3423,10 +3573,12 @@ var ImageOCR = (function() {
     }).filter(function(h){ return h.n; });
 
     var otros = otrosIn.map(function(o){
+      var n = String(o.nombre || '').trim();
       return {
-        n: String(o.nombre || '').trim(),
+        n: n,
         g: Math.round(unitToGrams(o.cantidad, o.unidad, baseFlour) * 100) / 100,
-        pref: false
+        pref: false,
+        cat: classifyIngredient(n)
       };
     }).filter(function(o){ return o.n; });
 
@@ -3523,12 +3675,11 @@ var ImageOCR = (function() {
       document.getElementById('selRecetas').value = '';
       writeProcToForm(model.proc);
       document.querySelector('#tHarinas tbody').innerHTML = '';
-      document.querySelector('#tOtros tbody').innerHTML = '';
+      clearAllOtrosTables();
       document.querySelector('#tProd tbody').innerHTML = '';
       if (model.harinas.length) model.harinas.forEach(function(h){ addIngredientRow('tHarinas', h); });
       else addIngredientRow('tHarinas');
-      if (model.otros.length) model.otros.forEach(function(o){ addIngredientRow('tOtros', o); });
-      else addIngredientRow('tOtros');
+      distributeToCategories(model.otros || []);
       if (model.prods.length) model.prods.forEach(function(p){ addProdRow(p); });
       else addProdRow();
       calc();
@@ -3638,15 +3789,16 @@ function init() {
   applyTheme(savedTheme === 'dark' ? 'dark' : 'light');
 
   loadStorage();
+  buildCatSections();
   renderRecipeSelect();
   renderCola();
   document.getElementById('fecha').value = tomorrowISO();
 
   // Semillas iniciales si no hay filas
   if (document.querySelector('#tHarinas tbody').children.length === 0) {
-    addIngredientRow('tHarinas', { n: 'Harina Trigo', g: 1000, c: 0.6 });
-    addIngredientRow('tOtros', { n: 'Agua', g: 600, c: 0 });
-    addIngredientRow('tOtros', { n: 'Sal', g: 20, c: 0.8 });
+    addIngredientRow('tHarinas', { n: 'Harina Trigo', g: 1000 });
+    addIngredientRow(CAT_TABLE_ID('liquidos'), { n: 'Agua', g: 600 });
+    addIngredientRow(CAT_TABLE_ID('sal'),      { n: 'Sal',  g: 20 });
     addProdRow({ fmt: 'Barra', c: 50, p: 250 });
   }
 
