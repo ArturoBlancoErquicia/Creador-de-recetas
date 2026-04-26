@@ -1,0 +1,4 @@
+# Backups locales de recetas — datos del negocio, NO subir al repo público.
+recetas_obrador_*.json
+*.local.json
+.DS_Store
